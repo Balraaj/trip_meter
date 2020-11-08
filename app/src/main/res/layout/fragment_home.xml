@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_fragment_home"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -44,8 +45,127 @@
             app:layout_constraintBaseline_toBaselineOf="@+id/tv_speed"
             app:layout_constraintStart_toEndOf="@+id/tv_speed" />
 
+        <TextView
+            android:id="@+id/tv_speed_dummy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:elevation="10dp"
+            android:fontFamily="serif"
+            android:text="@string/place_holder_0"
+            android:textColor="@color/white"
+            android:textSize="56sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_speed"
+            tools:text="76" />
+
+        <TextView
+            android:id="@+id/label_kmph_dummy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:elevation="10dp"
+            android:text="@string/label_km_ph"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/tv_speed_dummy"
+            app:layout_constraintStart_toEndOf="@+id/tv_speed_dummy" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/container_active_trip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_margin="8dp"
+        app:cardElevation="20dp"
+        app:cardCornerRadius="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/container_speed"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_list_item_trip">
+
+            <TextView
+                android:id="@+id/label_start_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/label_start_address"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tv_start_address"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="24dp"
+                android:maxLines="4"
+                app:layout_constraintStart_toEndOf="@id/label_start_address"
+                app:layout_constraintTop_toTopOf="@id/label_start_address"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <TextView
+                android:id="@+id/label_end_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/label_end_address"
+                app:layout_constraintStart_toStartOf="@id/label_start_address"
+                app:layout_constraintTop_toBottomOf="@id/tv_start_address"/>
+
+            <TextView
+                android:id="@+id/tv_end_address"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                android:maxLines="4"
+                app:layout_constraintStart_toStartOf="@id/tv_start_address"
+                app:layout_constraintTop_toTopOf="@id/label_end_address"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <TextView
+                android:id="@+id/label_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/label_speed"
+                app:layout_constraintStart_toStartOf="@id/label_end_address"
+                app:layout_constraintTop_toBottomOf="@id/tv_end_address"/>
+
+            <TextView
+                android:id="@+id/tv_trip_speed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                android:maxLines="1"
+                android:textColor="@color/nav_bar_bottom"
+                android:textSize="48sp"
+                app:layout_constraintTop_toTopOf="@id/label_speed"
+                app:layout_constraintEnd_toStartOf="@id/label_trip_kmph"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="76" />
+
+            <TextView
+                android:id="@+id/label_trip_kmph"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/nav_bar_bottom"
+                android:text="@string/label_km_ph"
+                android:textSize="18sp"
+                app:layout_constraintBaseline_toBaselineOf="@+id/tv_trip_speed"
+                app:layout_constraintEnd_toEndOf="@+id/tv_end_address" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
 
 
     <Button

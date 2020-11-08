@@ -22,4 +22,8 @@
     <string name="permissions_required">Trip Meter uses location feature of your device to provide you speed and other useful information.\nPlease grant permissions in app settings.</string>
     <string name="enable_gps">Location services must be enabled in order to get the speed information.</string>
     <string name="location_required">Trip Meter can not work without location services turned on.</string>
+    <string name="label_start_address">Start Address : </string>
+    <string name="label_end_address">End Address : </string>
+    <string name="label_speed">Speed :</string>
+    <string name="label_no_trips">You have not added any trips yet.</string>
 </resources>

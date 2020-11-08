@@ -19,6 +19,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
+            app:titleTextColor="@color/white"
             android:layout_height="?attr/actionBarSize"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
@@ -42,8 +43,9 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@color/nav_bar_bottom"
-        app:itemIconTint="@color/colorAccent"
         app:menu="@menu/nav_bar_bottom"
+        app:itemIconTint="@color/nav_bar_item_text"
+        app:itemTextColor="@color/nav_bar_item_text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>

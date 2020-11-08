@@ -9,4 +9,11 @@
     <color name="nav_bar_bottom">#229AEA</color>
     <color name="white">#FFFFFF</color>
 
+
+    <color name="bg_btn_cancel">#E3E3E3</color>
+    <color name="bg_btn_save">#229AEA</color>
+    <color name="text_btn_cancel">#666666</color>
+    <color name="text_btn_save">#FFFFFF</color>
+    <color name="text_dialog_message">#444444</color>
+
 </resources>

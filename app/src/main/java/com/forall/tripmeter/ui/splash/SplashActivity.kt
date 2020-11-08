@@ -22,6 +22,7 @@ class SplashActivity : BaseActivity<SplashViewModel>() {
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = Intent(SplashActivity@this, HomeActivity::class.java)
             startActivity(intent)
+            finish()
         }, 1000)
     }
 

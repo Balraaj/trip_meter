@@ -1,9 +1,29 @@
 package com.forall.tripmeter.ui.home
 
+import android.location.Location
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
+import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.prefs.TripMeterSharedPrefs
+import kotlinx.coroutines.launch
+import java.util.*
 
 class HomeViewModel(sharedPrefs: TripMeterSharedPrefs): BaseViewModel(sharedPrefs) {
-    val data: MutableLiveData<String> = MutableLiveData()
+    private val locationData: MutableList<Location> = LinkedList()
+    val averageSpeed: MutableLiveData<String> = MutableLiveData()
+
+    fun updateLocationData(location: Location){
+        if(locationData.size == 10) { locationData.removeAt(0) }
+        locationData.add(location)
+    }
+
+    fun postUpdatedDataToUI() = viewModelScope.launch {
+        if(locationData.size < 10) { averageSpeed.postValue(EMPTY_STRING) }
+        else{
+            val sum = locationData.asSequence().sumBy { it.speed.toInt() }
+            val speed = sum / locationData.size
+            averageSpeed.postValue(speed.toString())
+        }
+    }
 }

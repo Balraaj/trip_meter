@@ -14,16 +14,25 @@ class HomeViewModel(sharedPrefs: TripMeterSharedPrefs): BaseViewModel(sharedPref
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
 
     fun updateLocationData(location: Location){
-        if(locationData.size == 10) { locationData.removeAt(0) }
+        if(locationData.size == 4) { locationData.removeAt(0) }
         locationData.add(location)
+        postUpdatedDataToUI()
     }
 
-    fun postUpdatedDataToUI() = viewModelScope.launch {
-        if(locationData.size < 10) { averageSpeed.postValue(EMPTY_STRING) }
+    private fun postUpdatedDataToUI() = viewModelScope.launch {
+        if(locationData.size < 4) { averageSpeed.postValue(EMPTY_STRING) }
         else{
             val sum = locationData.asSequence().sumBy { it.speed.toInt() }
-            val speed = sum / locationData.size
-            averageSpeed.postValue(speed.toString())
+            val speed = (sum * 3.6) / locationData.size
+            averageSpeed.postValue(speed.toInt().toString())
+        }
+    }
+
+    fun getLatestSpeed(): String{
+        return if(locationData.isEmpty()){
+            EMPTY_STRING
+        } else {
+            (locationData[locationData.size-1].speed * 3.6).toInt().toString()
         }
     }
 }

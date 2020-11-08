@@ -185,8 +185,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
                 val location = locationList.first()
-                tv_speed.text = ((location.speed) * 3.6).toInt().toString()
-                lastLocation = location
+                viewModel.updateLocationData(location)
             }
         }
     }

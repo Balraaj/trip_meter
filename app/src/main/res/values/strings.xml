@@ -26,4 +26,5 @@
     <string name="label_end_address">End Address : </string>
     <string name="label_speed">Speed :</string>
     <string name="label_no_trips">You have not added any trips yet.</string>
+    <string name="label_distance">Distance : </string>
 </resources>

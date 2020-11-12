@@ -36,6 +36,13 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             tv_speed.text = if(it == EMPTY_STRING) { "---" } else { it }
             tv_speed_dummy.text = viewModel.getLatestSpeed()
         })
+
+        viewModel.currentTripDelta.observe(this, Observer {
+            if(it != null && viewModel.tripActive) {
+                updateCurrentTripView()
+                viewModel.updateCurrentTrip()
+            }
+        })
     }
 
     private val tripToggleListener = View.OnClickListener {
@@ -43,11 +50,14 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             ViewCompat.setBackgroundTintList(btn_trip_start, ColorStateList.valueOf(btnColorInactive))
             btn_trip_start.text = "START"
             toggle(false)
+            viewModel.tripActive = false
         }
         else{
             ViewCompat.setBackgroundTintList(btn_trip_start, ColorStateList.valueOf(btnColorActive))
             btn_trip_start.text = "END"
             toggle(true)
+            viewModel.tripActive = true
+            viewModel.insertTrip()
         }
     }
 
@@ -57,5 +67,12 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
         transition.addTarget(R.id.container_active_trip)
         TransitionManager.beginDelayedTransition(root_fragment_home, transition)
         container_active_trip.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun updateCurrentTripView(){
+        val trip = viewModel.getLatestTrip() ?: return
+        tv_start_address.text = trip.startAddress
+        tv_end_address.text = trip.endAddress
+        tv_trip_speed.text = trip.speed.toString()
     }
 }

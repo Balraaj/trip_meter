@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.forall.tripmeter.R
-import com.forall.tripmeter.common.Trip
+import com.forall.tripmeter.database.entity.Trip
 import kotlinx.android.synthetic.main.list_item_trips.view.*
 
 /**
@@ -25,8 +25,7 @@ import kotlinx.android.synthetic.main.list_item_trips.view.*
  * -----------------------------------------------------------------------------------
  */
 
-class TripAdapter(private var dataSet: List<Trip>):
-    RecyclerView.Adapter<TripAdapter.ViewHolder>() {
+class TripAdapter(private var dataSet: List<Trip>): RecyclerView.Adapter<TripAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val viewHolder = LayoutInflater.from(parent.context)
@@ -40,6 +39,7 @@ class TripAdapter(private var dataSet: List<Trip>):
         v.tv_start_address.text = currentItem.startAddress
         v.tv_end_address.text = currentItem.endAddress
         v.tv_speed.text = currentItem.speed.toString()
+        v.tv_distance.text = currentItem.distance.toString()
     }
 
     override fun getItemCount() = dataSet.size

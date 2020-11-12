@@ -1,6 +1,7 @@
 package com.forall.tripmeter.ui.home.trips
 
 import android.view.View
+import androidx.lifecycle.Observer
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseFragment
 import com.forall.tripmeter.common.Trip
@@ -12,8 +13,13 @@ class TripsFragment: BaseFragment<HomeViewModel>() {
     override fun provideLayoutId() = R.layout.fragment_trips
     override fun injectDependencies(fc: FragmentComponent) = fc.inject(this)
     override fun setupView(view: View) {
-        rv_trips.adapter = TripAdapter(getDummyTrips())
     }
+
+    override fun setupObservers() {
+        super.setupObservers()
+        viewModel.getAllTrips().observe(this, Observer { rv_trips.adapter = TripAdapter(it) })
+    }
+
 
 
     private fun getDummyTrips(): List<Trip>{

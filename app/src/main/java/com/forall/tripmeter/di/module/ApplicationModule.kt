@@ -3,8 +3,12 @@ package com.forall.tripmeter.di.module
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
+import com.forall.tripmeter.common.Constants.TRIP_METER_DATABASE
 import com.forall.tripmeter.common.Constants.TRIP_METER_PREFS
+import com.forall.tripmeter.database.Database
 import com.forall.tripmeter.prefs.TripMeterSharedPrefs
+import com.forall.tripmeter.repository.Repository
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -23,4 +27,18 @@ class ApplicationModule {
     @Singleton
     @Provides
     fun provideTripMeterSharedPrefs(prefs: SharedPreferences) = TripMeterSharedPrefs(prefs)
+
+    @Singleton
+    @Provides
+    fun provideDatabase(app: Application): Database {
+        return Room.databaseBuilder(app, Database::class.java, TRIP_METER_DATABASE)
+            .fallbackToDestructiveMigration()
+            .allowMainThreadQueries().build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRepository(database: Database, prefs: TripMeterSharedPrefs):Repository{
+        return Repository(database, prefs)
+    }
 }

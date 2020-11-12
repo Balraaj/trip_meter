@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender.SendIntentException
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -17,14 +18,13 @@ import android.provider.Settings
 import android.view.WindowManager
 import androidx.appcompat.widget.Toolbar
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
+import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.di.component.ActivityComponent
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes.RESOLUTION_REQUIRED
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.*
@@ -36,7 +36,8 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.android.synthetic.main.fragment_home.*
+import java.io.IOException
+import java.util.*
 
 
 class HomeActivity : BaseActivity<HomeViewModel>() {
@@ -48,8 +49,8 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         private const val LOCATION_SETTINGS_REQUEST = 1001
     }
 
+    private lateinit var geocoder: Geocoder
     private lateinit var navController: NavController
-    private var lastLocation: Location? = null
     private lateinit var locationRequest: LocationRequest
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -64,6 +65,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         navController = findNavController(R.id.nav_host_fragment)
         nav_bar_bottom.setupWithNavController(navController)
         setupNavLocationChangeListener()
+        geocoder = Geocoder(this, Locale.getDefault())
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         buildFusedLocationRequest()
         checkPermissionsAndContinue()
@@ -136,7 +138,6 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         locationManager.requestLocationUpdates(GPS_PROVIDER, LOCATION_INTERVAL, 5f, locationListener)
     }
 
-
     /**
      * When user cancels settings dialog, hence not allowing permissions.
      * notify the user of inability to work and kill the app.
@@ -179,13 +180,12 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         }
     }
 
-
     private var locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
                 val location = locationList.first()
-                viewModel.updateLocationData(location)
+                viewModel.postNewLocation(location, getAddressFromLocation(location))
             }
         }
     }
@@ -195,8 +195,17 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
      * may be in future we can make user of it.
      * @author Balraj
      */
-    private val locationListener = LocationListener {}
+    private val locationListener = object: LocationListener {
+        override fun onLocationChanged(location: Location) {}
 
+        override fun onProviderDisabled(provider: String) {
+            if (provider == GPS_PROVIDER) checkGPSStatus()
+        }
+
+        override fun onProviderEnabled(provider: String) {
+            checkGPSStatus()
+        }
+    }
 
     private val listener = OnCompleteListener<LocationSettingsResponse> { task ->
         try {
@@ -217,4 +226,19 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         }
     }
 
+    /**
+     * Tries to determine the address of given location.
+     * if no address is found then return 'NA' as result.
+     * @author Balraj
+     */
+    private fun getAddressFromLocation(location: Location): String{
+        try {
+            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
+                return addresses[0].getAddressLine(0)
+            }
+            return NA
+        }
+        catch (e: IOException) { return NA }
+    }
 }

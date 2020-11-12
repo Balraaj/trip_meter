@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.forall.tripmeter.ui.home.HomeViewModel
 import com.forall.tripmeter.common.ViewModelProviderFactory
 import com.forall.tripmeter.prefs.TripMeterSharedPrefs
+import com.forall.tripmeter.repository.Repository
 import com.forall.tripmeter.ui.splash.SplashViewModel
 import dagger.Module
 import dagger.Provides
@@ -13,16 +14,16 @@ import dagger.Provides
 class ActivityModule(private val activity: AppCompatActivity){
 
     @Provides
-    fun provideHomeViewModel(sharedPrefs: TripMeterSharedPrefs): HomeViewModel {
+    fun provideHomeViewModel(repo: Repository): HomeViewModel {
         return ViewModelProvider(activity,
             ViewModelProviderFactory(HomeViewModel::class){
-                HomeViewModel(sharedPrefs) }).get(HomeViewModel::class.java)
+                HomeViewModel(repo) }).get(HomeViewModel::class.java)
     }
 
     @Provides
-    fun provideSplashViewModel(sharedPrefs: TripMeterSharedPrefs): SplashViewModel {
+    fun provideSplashViewModel(repo: Repository): SplashViewModel {
         return ViewModelProvider(activity,
             ViewModelProviderFactory(SplashViewModel::class){
-                SplashViewModel(sharedPrefs) }).get(SplashViewModel::class.java)
+                SplashViewModel(repo) }).get(SplashViewModel::class.java)
     }
 }

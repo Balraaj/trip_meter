@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.forall.tripmeter.R
+import com.forall.tripmeter.common.Utils
 import com.forall.tripmeter.database.entity.Trip
 import kotlinx.android.synthetic.main.list_item_trips.view.*
 
@@ -36,10 +37,12 @@ class TripAdapter(private var dataSet: List<Trip>): RecyclerView.Adapter<TripAda
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentItem = dataSet[position]
         val v = holder.itemView
+        v.tv_trip_start_time.text = Utils.millisToTripTimeFormat(currentItem.startTime)
+        v.tv_trip_end_time.text = Utils.millisToTripTimeFormat(currentItem.endTime)
         v.tv_start_address.text = currentItem.startAddress
         v.tv_end_address.text = currentItem.endAddress
         v.tv_speed.text = currentItem.speed.toString()
-        v.tv_distance.text = currentItem.distance.toString()
+        v.tv_distance.text = Utils.metersToKM(currentItem.distance).toString()
     }
 
     override fun getItemCount() = dataSet.size

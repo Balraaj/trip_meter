@@ -4,7 +4,7 @@ import android.view.View
 import androidx.lifecycle.Observer
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseFragment
-import com.forall.tripmeter.common.Trip
+import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.di.component.FragmentComponent
 import com.forall.tripmeter.ui.home.HomeViewModel
 import kotlinx.android.synthetic.main.fragment_trips.*
@@ -17,24 +17,26 @@ class TripsFragment: BaseFragment<HomeViewModel>() {
 
     override fun setupObservers() {
         super.setupObservers()
-        viewModel.getAllTrips().observe(this, Observer { rv_trips.adapter = TripAdapter(it) })
+        viewModel.getAllTrips().observe(this, Observer { updateUI(it) })
     }
 
-
-
-    private fun getDummyTrips(): List<Trip>{
-        val trip1 = Trip("Ward no. 13, Dholipal, Hanumangarh, Rajasthan",
-        "Near Bhagat singh chowk, Hanumangarh juction, Hanumangarh, Rajasthan", 75)
-
-        val trip2 = Trip("Ward no. 7, 7A choti, Sriganganagar, Rajasthan",
-            "Near Bhagat singh chowk, Sriganganagar, Rajasthan", 37)
-
-        val trip3 = Trip("Near Hotel Taj, Mumbai, Maharashtra",
-            "Chuna fatak, Hanumangarh, Rajasthan", 89)
-
-        val trip4 = Trip("Public park, opposite forest department office, Bikaner, Rajasthan",
-            "96A, Sector 11-D, Faridabad, Haryana", 105)
-
-        return listOf(trip1, trip2, trip3, trip4)
+    /**
+     * Updates the UI with trip data. any currently active trip is not displayed.
+     * if there are no trips then user is notified with appropriate text message.
+     * @author Balraj
+     */
+    private fun updateUI(trips: List<Trip>){
+        val visibleTrips = arrayListOf<Trip>()
+        if(viewModel.tripActive.value!!) { visibleTrips.addAll(trips); visibleTrips.removeAt(0) }
+        else { visibleTrips.addAll(trips) }
+        if(visibleTrips.isEmpty()){
+            rv_trips.visibility = View.GONE
+            label_no_trips.visibility = View.VISIBLE
+        }
+        else{
+            rv_trips.visibility = View.VISIBLE
+            label_no_trips.visibility = View.GONE
+            rv_trips.adapter = TripAdapter(visibleTrips)
+        }
     }
 }

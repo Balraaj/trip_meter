@@ -45,45 +45,31 @@
             app:layout_constraintBaseline_toBaselineOf="@+id/tv_speed"
             app:layout_constraintStart_toEndOf="@+id/tv_speed" />
 
-        <TextView
-            android:id="@+id/tv_speed_dummy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="10dp"
-            android:fontFamily="serif"
-            android:text="@string/place_holder_0"
-            android:textColor="@color/white"
-            android:textSize="56sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_speed"
-            tools:text="76" />
-
-        <TextView
-            android:id="@+id/label_kmph_dummy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:elevation="10dp"
-            android:text="@string/label_km_ph"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            app:layout_constraintBaseline_toBaselineOf="@+id/tv_speed_dummy"
-            app:layout_constraintStart_toEndOf="@+id/tv_speed_dummy" />
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/tv_current_address_top"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_margin="16dp"
+        android:maxLines="3"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/container_speed"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/container_active_trip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:layout_margin="8dp"
         app:cardElevation="20dp"
         app:cardCornerRadius="4dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/container_speed"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -98,46 +84,77 @@
                 android:layout_margin="16dp"
                 android:text="@string/label_start_address"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tv_start_address"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_marginEnd="24dp"
                 android:maxLines="4"
-                app:layout_constraintStart_toEndOf="@id/label_start_address"
-                app:layout_constraintTop_toTopOf="@id/label_start_address"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/tv_current_address"
+                app:layout_constraintTop_toTopOf="@id/label_start_address" />
 
             <TextView
-                android:id="@+id/label_end_address"
+                android:id="@+id/label_current_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/label_end_address"
+                android:text="@string/label_current_address"
                 app:layout_constraintStart_toStartOf="@id/label_start_address"
-                app:layout_constraintTop_toBottomOf="@id/tv_start_address"/>
+                app:layout_constraintTop_toBottomOf="@id/tv_start_address" />
 
             <TextView
-                android:id="@+id/tv_end_address"
+                android:id="@+id/tv_current_address"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_marginEnd="24dp"
                 android:maxLines="4"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/label_current_address"
+                app:layout_constraintTop_toTopOf="@id/label_current_address" />
+
+
+            <TextView
+                android:id="@+id/label_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/label_distance"
+                app:layout_constraintStart_toStartOf="@id/label_current_address"
+                app:layout_constraintTop_toBottomOf="@id/tv_current_address" />
+
+            <TextView
+                android:id="@+id/tv_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="4"
+                tools:text="23.5"
                 app:layout_constraintStart_toStartOf="@id/tv_start_address"
-                app:layout_constraintTop_toTopOf="@id/label_end_address"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintTop_toTopOf="@id/label_distance" />
+
+            <TextView
+                android:id="@+id/label_km"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/label_km"
+                android:textSize="10sp"
+                app:layout_constraintBaseline_toBaselineOf="@+id/tv_distance"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintStart_toEndOf="@id/tv_distance" />
 
             <TextView
                 android:id="@+id/label_speed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/label_speed"
-                app:layout_constraintStart_toStartOf="@id/label_end_address"
-                app:layout_constraintTop_toBottomOf="@id/tv_end_address"/>
+                android:text="@string/label_trip_average_speed"
+                app:layout_constraintStart_toStartOf="@id/label_current_address"
+                app:layout_constraintTop_toBottomOf="@id/tv_distance" />
 
             <TextView
                 android:id="@+id/tv_trip_speed"
@@ -148,20 +165,20 @@
                 android:maxLines="1"
                 android:textColor="@color/nav_bar_bottom"
                 android:textSize="48sp"
-                app:layout_constraintTop_toTopOf="@id/label_speed"
-                app:layout_constraintEnd_toStartOf="@id/label_trip_kmph"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/label_trip_kmph"
+                app:layout_constraintTop_toTopOf="@id/label_speed"
                 tools:text="76" />
 
             <TextView
                 android:id="@+id/label_trip_kmph"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/nav_bar_bottom"
                 android:text="@string/label_km_ph"
+                android:textColor="@color/nav_bar_bottom"
                 android:textSize="18sp"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tv_trip_speed"
-                app:layout_constraintEnd_toEndOf="@+id/tv_end_address" />
+                app:layout_constraintEnd_toEndOf="@+id/tv_current_address" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -174,8 +191,8 @@
         android:layout_height="80dp"
         android:background="@drawable/bg_round_btn"
         android:backgroundTint="@color/colorPrimary"
-        android:layout_margin="16dp"
-        android:text="@string/label_start"
+        android:layout_margin="32dp"
+        android:text="@string/start_trip"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>

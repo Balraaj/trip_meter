@@ -12,8 +12,8 @@ interface TripDao {
     @Insert
     fun insertTrip(trip: Trip)
 
-    @Query("UPDATE trip SET endAddress =:endAddress, endTime=:endTime, distance =:distance, speed =:speed WHERE tripId =:tripId ")
-    fun updateTrip(tripId: Int, endAddress: String, endTime: Long, distance: Float, speed: Int)
+    @Query("UPDATE trip SET endAddress =:endAddress, endTime=:endTime, endLat =:endLat, endLong =:endLong, distance =:distance, speed =:speed WHERE tripId =:tripId ")
+    fun updateTrip(tripId: Int, endAddress: String, endTime: Long, endLat: Double, endLong: Double, distance: Float, speed: Int)
 
     @Query("SELECT * FROM trip ORDER BY tripId DESC")
     fun getAllTrips(): LiveData<List<Trip>>

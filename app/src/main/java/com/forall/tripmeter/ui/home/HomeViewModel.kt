@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
 import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
+import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.repository.Repository
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,8 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * Signifies if a new trip is active.
      * this value is only changed when user toggles the trip start button.
      */
-    var tripActive = false
+    var tripActive: MutableLiveData<Boolean> = MutableLiveData(false)
+    var insertTrip: MutableLiveData<Boolean> = MutableLiveData(false)
 
     val currentTripDelta: MutableLiveData<Trip> = MutableLiveData()
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
@@ -37,7 +39,7 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     }
 
     private fun updateSpeedData(location: Location){
-        if(locationData.size == 4) { locationData.removeAt(0) }
+        if(locationData.size == SPEED_CACHE_SIZE) { locationData.removeAt(0) }
         locationData.add(location)
         postUpdatedSpeedDataToUI()
     }
@@ -56,7 +58,7 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * @author Balraj
      */
     private fun postUpdatedSpeedDataToUI() = viewModelScope.launch {
-        if(locationData.size < 4) { averageSpeed.postValue(EMPTY_STRING) }
+        if(locationData.size < SPEED_CACHE_SIZE) { averageSpeed.postValue(EMPTY_STRING) }
         else{
             val sum = locationData.asSequence().sumBy { it.speed.toInt() }
             val speed = (sum * 3.6) / locationData.size
@@ -100,10 +102,8 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
         val lastLocation = Location(LAST_LOCATION)
         lastLocation.latitude = trip.endLat
         lastLocation.longitude = trip.endLong
-        val distance = currentLocation.distanceTo(lastLocation)
-        val speed = if(distance > 1000) {
-            (distance / ((newDelta.startTime - trip.endTime) / 1000) * 3.6 ).toInt()
-        } else { 0 }
+        val distance = currentLocation.distanceTo(lastLocation) + trip.distance
+        val speed = (distance / ((newDelta.startTime - trip.startTime) / 1000) * 3.6 ).toInt()
         return Pair(distance, speed)
     }
 

@@ -11,21 +11,79 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_list_item_trip">
+        android:background="@drawable/bg_list_item_border">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_trip"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_list_item_trip"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/label_trip_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:textSize="10sp"
+                android:text="@string/label_started"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <TextView
+                android:id="@+id/tv_trip_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textSize="10sp"
+                tools:text="13 Nov 2020 11:33 PM"
+                app:layout_constraintStart_toEndOf="@id/label_trip_start_time"
+                app:layout_constraintTop_toTopOf="@id/label_trip_start_time"
+                app:layout_constraintBottom_toBottomOf="@id/label_trip_start_time"/>
+
+            <TextView
+                android:id="@+id/label_trip_end_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:textSize="10sp"
+                android:text="@string/label_ended"
+                app:layout_constraintEnd_toStartOf="@id/tv_trip_end_time"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <TextView
+                android:id="@+id/tv_trip_end_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:textSize="10sp"
+                tools:text="13 Nov 2020 11:53 PM"
+                app:layout_constraintTop_toTopOf="@id/label_trip_start_time"
+                app:layout_constraintBottom_toBottomOf="@id/label_trip_start_time"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
             android:id="@+id/label_start_address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="12sp"
             android:layout_margin="16dp"
             android:text="@string/label_start_address"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/header_trip"/>
 
         <TextView
             android:id="@+id/tv_start_address"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textSize="12sp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="24dp"
             android:maxLines="4"
@@ -37,6 +95,7 @@
             android:id="@+id/label_end_address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="12sp"
             android:layout_marginTop="8dp"
             android:text="@string/label_end_address"
             app:layout_constraintStart_toStartOf="@id/label_start_address"
@@ -47,6 +106,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
+            android:textSize="12sp"
             android:maxLines="4"
             app:layout_constraintStart_toStartOf="@id/tv_start_address"
             app:layout_constraintTop_toTopOf="@id/label_end_address"
@@ -57,26 +117,40 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textSize="12sp"
             android:text="@string/label_distance"
             app:layout_constraintStart_toStartOf="@id/label_end_address"
             app:layout_constraintTop_toBottomOf="@id/tv_end_address"/>
 
         <TextView
             android:id="@+id/tv_distance"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
             android:maxLines="4"
+            android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@id/tv_start_address"
             app:layout_constraintTop_toTopOf="@id/label_distance"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            tools:text="76" />
+
+        <TextView
+            android:id="@+id/label_km"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_km"
+            android:layout_marginStart="4dp"
+            android:textSize="10sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/tv_distance"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_distance"
+            app:layout_constraintStart_toEndOf="@id/tv_distance" />
+
 
         <TextView
             android:id="@+id/label_speed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/label_speed"
+            android:textSize="12sp"
+            android:text="@string/label_trip_average_speed"
             app:layout_constraintStart_toStartOf="@id/label_end_address"
             app:layout_constraintTop_toBottomOf="@id/tv_distance"/>
 

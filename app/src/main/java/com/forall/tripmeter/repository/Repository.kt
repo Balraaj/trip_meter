@@ -10,7 +10,8 @@ class Repository(private val db: Database,
     fun insertTrip(trip: Trip) = db.tripDao().insertTrip(trip)
 
     fun updateCurrentTrip(t: Trip) {
-        db.tripDao().updateTrip(t.tripId, t.endAddress, t.endTime, t.distance, t.speed)
+        db.tripDao().updateTrip(t.tripId, t.endAddress, t.endTime,
+            t.endLat, t.endLong, t.distance, t.speed)
     }
 
     fun getAllTrips() = db.tripDao().getAllTrips()

@@ -27,4 +27,14 @@
     <string name="label_speed">Speed :</string>
     <string name="label_no_trips">You have not added any trips yet.</string>
     <string name="label_distance">Distance : </string>
+    <string name="end_trip">END\nTRIP</string>
+    <string name="start_trip">START\nTRIP</string>
+    <string name="label_current_address">Current Address : </string>
+    <string name="label_km">KM</string>
+    <string name="label_trip_average_speed">Trip Avg Speed : </string>
+    <string name="header_how_to">HOW TO</string>
+    <string name="text_about_us">At forall apps are mission is to develop applications that provide great features while maintaining a minimal user interface. So that you don\'t have you to spend hours figuring out how to use the application. \n\nTrip meter follows the same idea in its design.\nAs the name makes it very clear \'Trip Meter\' allows you to keep track of your trips, every recorded trip contains multiple information points such as start address, end address, distance covered and the average speed. \n\nplease provide us your valuable feedback at play store.\n Thank you for using Trip Meter</string>
+    <string name="text_how_to">1. By default home screen displays your current speed and current address.\n\n2. If you want to record your current trip you can tap the \'START TRIP\' button.\n\n3. Once trip is started \'START TRIP\' button changes to \'END TRIP\' and trip related additional information is displayed on home screen.\n\n4. To end the trip tap \'END TRIP\' button.\n\n5. You can view all your previous trips by navigating to trips section</string>
+    <string name="label_started">Started - </string>
+    <string name="label_ended">Ended -</string>
 </resources>

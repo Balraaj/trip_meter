@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
 import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
+import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.repository.Repository
@@ -27,15 +28,19 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
     private val locationData: MutableList<Location> = LinkedList()
 
+    var address: String = NA
+
+    val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
+
 
     /**
      * Updates the speed data as well as trip delta with new location information.
      * this function is responsible for notifying the UI of changes.
      * @author Balraj
      */
-    fun postNewLocation(location: Location, address: String){
+    fun postNewLocation(location: Location){
         updateSpeedData(location)
-        updateTripDelta(location, address)
+        updateTripDelta(location)
     }
 
     private fun updateSpeedData(location: Location){
@@ -47,8 +52,14 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     /**
      * Update the delta with current location information.
      */
-    private fun updateTripDelta(location: Location, address: String) {
+    private fun updateTripDelta(location: Location) {
         currentTripDelta.postValue(Trip.defaultDelta(location, address))
+    }
+
+    private fun setGPSLockAcquired(){
+        if(gpsLockAcquired.value == null || gpsLockAcquired.value == false) {
+            gpsLockAcquired.postValue(true)
+        }
     }
 
     /**
@@ -63,12 +74,22 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
             val sum = locationData.asSequence().sumBy { it.speed.toInt() }
             val speed = (sum * 3.6) / locationData.size
             averageSpeed.postValue(speed.toInt().toString())
+            setGPSLockAcquired()
         }
     }
 
 
     fun insertTrip() = GlobalScope.launch(Dispatchers.IO) {
         repo.insertTrip(currentTripDelta.value!!)
+    }
+
+    /**
+     * Deletes the latest trip, this is done when newly created trip doesn't
+     * satisfy any required constraint.
+     * @author Balraj
+     */
+    fun deleteLatestTrip() = GlobalScope.launch(Dispatchers.IO){
+        repo.deleteLatestTrip()
     }
 
     /**
@@ -103,7 +124,9 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
         lastLocation.latitude = trip.endLat
         lastLocation.longitude = trip.endLong
         val distance = currentLocation.distanceTo(lastLocation) + trip.distance
-        val speed = (distance / ((newDelta.startTime - trip.startTime) / 1000) * 3.6 ).toInt()
+        val speed = if(distance > 200) {
+            (distance / ((newDelta.startTime - trip.startTime) / 1000) * 3.6 ).toInt()
+        } else { 0 }
         return Pair(distance, speed)
     }
 

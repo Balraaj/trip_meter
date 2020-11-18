@@ -11,6 +11,8 @@ import androidx.transition.TransitionManager
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseFragment
 import com.forall.tripmeter.common.Constants.EMPTY_STRING
+import com.forall.tripmeter.common.Constants.MINIMUM_TRIP_DISTANCE_METER
+import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.common.Constants.ZERO
 import com.forall.tripmeter.common.Constants.ZERO_FLOAT
 import com.forall.tripmeter.common.Utils
@@ -43,7 +45,7 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
         super.onResume()
         if(viewModel.tripActive.value != null && viewModel.tripActive.value!!){
             updateTripToggleButton(true)
-            animateTripInfoCard(true)
+            animateCard(container_active_trip, true)
         }
     }
 
@@ -64,18 +66,40 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
         viewModel.tripActive.observe(this, Observer {
             it?.let {
                 updateUIForActiveTrip(it)
-                if(!it) { resetCurrentTripView() }
+                if(!it) {
+                    resetCurrentTripView()
+//                    verifyTripConstraintsAndCommit()
+                }
             }
         })
 
         viewModel.insertTrip.observe(this, Observer {
             if(it) { viewModel.insertTrip.value = false; viewModel.insertTrip() }
         })
+
+        viewModel.gpsLockAcquired.observe(this, Observer {
+            if(it){
+                animateCard(container_gps_lock, false)
+                btn_trip_start.isEnabled = true
+                updateTripToggleButton(false)
+            }
+        })
+    }
+
+    /**
+     * Commit newly created trip only if it satisfies all the required constraints.
+     */
+    private fun verifyTripConstraintsAndCommit() {
+        val trip = viewModel.getLatestTrip() ?: return
+        if(trip.distance < MINIMUM_TRIP_DISTANCE_METER){
+            viewModel.deleteLatestTrip()
+            showNotificationDialog(getString(R.string.trip_not_commited)){}
+        }
     }
 
     private fun updateUIForActiveTrip(tripActive: Boolean){
         updateTripToggleButton(tripActive)
-        animateTripInfoCard(tripActive)
+        animateCard(container_active_trip, tripActive)
     }
 
     /**
@@ -94,17 +118,18 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
      * or collapsing into right side, depending on the state of trip.
      * @author Balraj
      */
-    private fun animateTripInfoCard(tripActive: Boolean) {
+    private fun animateCard(v: View, show: Boolean) {
         val transition = Slide(Gravity.RIGHT)
         transition.duration = TRIP_INFO_CARD_ANIMATION_DURATION
-        transition.addTarget(R.id.container_active_trip)
+        transition.addTarget(v.id)
         TransitionManager.beginDelayedTransition(root_fragment_home, transition)
-        container_active_trip.visibility = if (tripActive) View.VISIBLE else View.GONE
+        v.visibility = if (show) View.VISIBLE else View.GONE
     }
 
 
     private fun updateCurrentTripView(){
         val trip = viewModel.getLatestTrip() ?: return
+        tv_trip_start_time.text = Utils.millisToTripTimeFormat(trip.startTime)
         tv_start_address.text = trip.startAddress
         tv_current_address.text = trip.endAddress
         tv_distance.text = Utils.metersToKM(trip.distance).toString()
@@ -112,6 +137,7 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
     }
 
     private fun resetCurrentTripView(){
+        tv_trip_start_time.text = NA
         tv_start_address.text = EMPTY_STRING
         tv_current_address.text = EMPTY_STRING
         tv_distance.text = ZERO_FLOAT.toString()

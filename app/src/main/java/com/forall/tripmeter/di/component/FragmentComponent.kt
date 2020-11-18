@@ -3,7 +3,7 @@ package com.forall.tripmeter.di.component
 import com.forall.tripmeter.di.FragmentScope
 import com.forall.tripmeter.di.module.FragmentModule
 import com.forall.tripmeter.ui.home.HomeFragment
-import com.forall.tripmeter.ui.home.aboutus.AboutUsFragment
+import com.forall.tripmeter.ui.home.howto.HowToFragment
 import com.forall.tripmeter.ui.home.trips.TripsFragment
 import dagger.Component
 
@@ -12,7 +12,7 @@ import dagger.Component
 interface FragmentComponent {
     fun inject(homeFragment: HomeFragment)
     fun inject(tripsFragment: TripsFragment)
-    fun inject(aboutUsFragment: AboutUsFragment)
+    fun inject(howToFragment: HowToFragment)
 
     @Component.Factory
     interface Factory{

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "411982678478",
+    "firebase_url": "https://trip-meter-c987b.firebaseio.com",
+    "project_id": "trip-meter-c987b",
+    "storage_bucket": "trip-meter-c987b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411982678478:android:3b4d95232d712c4982039f",
+        "android_client_info": {
+          "package_name": "com.forall.tripmeter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "411982678478-spokgp8ngmo8jjsd0e8o0jp5lvi1f3dc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwThXLCaar6k5i8BFMTcKIpvFHgcuQ-eo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "411982678478-spokgp8ngmo8jjsd0e8o0jp5lvi1f3dc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

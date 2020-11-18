@@ -18,9 +18,9 @@
         tools:layout="@layout/fragment_trips" />
 
     <fragment
-        android:id="@+id/nav_about_us"
-        android:name="com.forall.tripmeter.ui.home.aboutus.AboutUsFragment"
-        android:label="@string/nav_about_us"
-        tools:layout="@layout/fragment_about_us" />
+        android:id="@+id/nav_how_to"
+        android:name="com.forall.tripmeter.ui.home.howto.HowToFragment"
+        android:label="@string/nav_how_to"
+        tools:layout="@layout/fragment_how_to" />
 
 </navigation>

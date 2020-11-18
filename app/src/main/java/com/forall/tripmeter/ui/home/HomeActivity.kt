@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.view.WindowManager
@@ -24,6 +25,8 @@ import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
 import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.di.component.ActivityComponent
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
@@ -62,6 +65,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        setupAndLoadAds()
         navController = findNavController(R.id.nav_host_fragment)
         nav_bar_bottom.setupWithNavController(navController)
         setupNavLocationChangeListener()
@@ -185,7 +189,10 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
                 val location = locationList.first()
-                viewModel.postNewLocation(location, getAddressFromLocation(location))
+                setAddressForLocation(location)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    viewModel.postNewLocation(location)
+                }, 1000)
             }
         }
     }
@@ -228,17 +235,25 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
 
     /**
      * Tries to determine the address of given location.
-     * if no address is found then return 'NA' as result.
+     * if no address is found then sets 'Not Available' as address.
      * @author Balraj
      */
-    private fun getAddressFromLocation(location: Location): String{
-        try {
-            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
-                return addresses[0].getAddressLine(0)
+    private fun setAddressForLocation(loc: Location){
+        Thread {
+            try {
+                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
+                    viewModel?.address = addresses[0].getAddressLine(0)
+                }
+                else { viewModel?.address = NA }
             }
-            return NA
-        }
-        catch (e: IOException) { return NA }
+            catch (e: IOException) { viewModel?.address = NA }
+        }.start()
+    }
+
+    private fun setupAndLoadAds(){
+        MobileAds.initialize(this) {}
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
     }
 }

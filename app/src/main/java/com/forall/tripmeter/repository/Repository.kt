@@ -8,6 +8,7 @@ class Repository(private val db: Database,
                  private val prefs: TripMeterSharedPrefs) {
 
     fun insertTrip(trip: Trip) = db.tripDao().insertTrip(trip)
+    fun deleteLatestTrip() = db.tripDao().deleteLatestTrip()
 
     fun updateCurrentTrip(t: Trip) {
         db.tripDao().updateTrip(t.tripId, t.endAddress, t.endTime,

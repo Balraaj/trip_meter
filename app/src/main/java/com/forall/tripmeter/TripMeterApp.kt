@@ -4,7 +4,6 @@ import android.app.Application
 import com.forall.tripmeter.common.AppComponentProvider
 import com.forall.tripmeter.di.component.ApplicationComponent
 import com.forall.tripmeter.di.component.DaggerApplicationComponent
-import java.lang.IllegalStateException
 
 /**
  * Project Name : Trip Meter

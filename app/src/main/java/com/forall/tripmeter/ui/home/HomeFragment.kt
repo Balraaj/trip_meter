@@ -23,8 +23,10 @@ import kotlinx.android.synthetic.main.fragment_home.*
 class HomeFragment : BaseFragment<HomeViewModel>() {
 
     private companion object {
-        private val BTN_ACTIVE_TINT_LIST = ColorStateList.valueOf(Color.parseColor("#19FDD6"))
-        private val BTN_INACTIVE_TINT_LIST = ColorStateList.valueOf(Color.parseColor("#19DAFD"))
+        private val BTN_ACTIVE_TINT_LIST = ColorStateList.valueOf(Color.parseColor("#7A7A7A"))
+        private val BTN_INACTIVE_TINT_LIST = ColorStateList.valueOf(Color.parseColor("#F9F969"))
+        private val BTN_ACTIVE_TEXT_CLR = Color.parseColor("#F9F969")
+        private val BTN_INACTIVE_TEXT_CLR = Color.parseColor("#474747")
         private const val TRIP_INFO_CARD_ANIMATION_DURATION = 600L
         private const val SPEED_PLACE_HOLDER = "---"
     }
@@ -110,6 +112,8 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
     private fun updateTripToggleButton(tripActive: Boolean){
         btn_trip_start.text = getString(if(tripActive) R.string.end_trip else R.string.start_trip)
         val btnTint = if(tripActive) { BTN_ACTIVE_TINT_LIST } else { BTN_INACTIVE_TINT_LIST }
+        val textColor = if(tripActive) { BTN_ACTIVE_TEXT_CLR } else { BTN_INACTIVE_TEXT_CLR }
+        btn_trip_start.setTextColor(textColor)
         ViewCompat.setBackgroundTintList(btn_trip_start, btnTint)
     }
 
@@ -142,5 +146,11 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
         tv_current_address.text = EMPTY_STRING
         tv_distance.text = ZERO_FLOAT.toString()
         tv_trip_speed.text = ZERO.toString()
+    }
+
+    private fun dummy(){
+        val list = mutableListOf<Int>()
+        val iterator = list.iterator()
+        iterator.remove()
     }
 }

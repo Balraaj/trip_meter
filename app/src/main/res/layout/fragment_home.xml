@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:background="@drawable/bg_app"
+    tools:background="@drawable/bg_app_material"
     tools:context=".ui.home.HomeFragment">
 
 
@@ -25,7 +25,7 @@
             android:elevation="10dp"
             android:fontFamily="serif"
             android:text="@string/place_holder_0"
-            android:textColor="@color/white"
+            android:textColor="@color/colorSecondary"
             android:textSize="56sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,7 +39,7 @@
             android:layout_marginStart="8dp"
             android:elevation="10dp"
             android:text="@string/label_km_ph"
-            android:textColor="@color/white"
+            android:textColor="@color/colorSecondary"
             android:textSize="18sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/tv_speed"
             app:layout_constraintStart_toEndOf="@+id/tv_speed" />
@@ -54,7 +54,7 @@
         android:maxLines="3"
         android:textAlignment="center"
         android:textSize="12sp"
-        android:textColor="@color/white"
+        android:textColor="@color/colorSecondary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/container_speed"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -63,9 +63,8 @@
         android:id="@+id/container_active_trip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_margin="12dp"
         app:cardElevation="20dp"
-        app:cardCornerRadius="4dp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -75,14 +74,13 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_list_item_border">
+            android:background="@color/colorSecondary">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/header_trip"
                 android:layout_width="0dp"
                 android:layout_height="30dp"
                 android:layout_margin="1dp"
-                android:background="@drawable/bg_list_item_trip"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
@@ -93,7 +91,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/label_started"
                     android:textSize="12sp"
-                    app:layout_constraintHorizontal_bias=".37"
+                    android:textColor="#FFFFFF"
+                    app:layout_constraintHorizontal_bias=".35"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -105,6 +104,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:textSize="12sp"
+                    android:textColor="#FFFFFF"
                     tools:text="13 Nov 2020 11:33 PM"
                     app:layout_constraintStart_toEndOf="@id/label_trip_start_time"
                     app:layout_constraintTop_toTopOf="@id/label_trip_start_time"
@@ -119,6 +119,7 @@
                 android:textSize="12sp"
                 android:layout_margin="16dp"
                 android:text="@string/label_start_address"
+                android:textColor="#FFFFFF"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/header_trip"/>
 
@@ -129,6 +130,7 @@
                 android:layout_marginEnd="24dp"
                 android:maxLines="4"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/tv_current_address"
                 app:layout_constraintTop_toTopOf="@id/label_start_address" />
@@ -138,6 +140,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 android:layout_marginTop="8dp"
                 android:text="@string/label_current_address"
                 app:layout_constraintStart_toStartOf="@id/label_start_address"
@@ -151,6 +154,7 @@
                 android:layout_marginEnd="24dp"
                 android:maxLines="4"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/label_current_address"
                 app:layout_constraintTop_toTopOf="@id/label_current_address" />
@@ -161,6 +165,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 android:text="@string/label_distance"
                 app:layout_constraintStart_toStartOf="@id/label_current_address"
                 app:layout_constraintTop_toBottomOf="@id/tv_current_address"/>
@@ -171,6 +176,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="4"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 app:layout_constraintStart_toStartOf="@id/tv_start_address"
                 app:layout_constraintTop_toTopOf="@id/label_distance"
                 tools:text="76" />
@@ -182,6 +188,7 @@
                 android:text="@string/label_km"
                 android:layout_marginStart="4dp"
                 android:textSize="10sp"
+                android:textColor="#FFFFFF"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tv_distance"
                 app:layout_constraintBottom_toBottomOf="@+id/tv_distance"
                 app:layout_constraintStart_toEndOf="@id/tv_distance" />
@@ -194,6 +201,7 @@
                 android:layout_marginTop="8dp"
                 android:textSize="12sp"
                 android:text="@string/label_trip_average_speed"
+                android:textColor="#FFFFFF"
                 app:layout_constraintStart_toStartOf="@id/label_current_address"
                 app:layout_constraintTop_toBottomOf="@id/tv_distance"/>
 
@@ -204,7 +212,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp"
                 android:maxLines="1"
-                android:textColor="@color/nav_bar_bottom"
+                android:textColor="@color/colorPrimary"
                 android:textSize="48sp"
                 app:layout_constraintTop_toTopOf="@id/label_speed"
                 app:layout_constraintEnd_toStartOf="@id/label_trip_kmph"
@@ -215,7 +223,7 @@
                 android:id="@+id/label_trip_kmph"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/nav_bar_bottom"
+                android:textColor="@color/colorPrimary"
                 android:text="@string/label_km_ph"
                 android:textSize="18sp"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tv_trip_speed"
@@ -228,10 +236,9 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/container_gps_lock"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_height="200dp"
+        android:layout_margin="12dp"
         app:cardElevation="20dp"
-        app:cardCornerRadius="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -239,24 +246,25 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_list_item_border">
+            android:layout_height="match_parent"
+            android:background="@color/colorSecondary">
 
             <ProgressBar
                 android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                app:layout_constraintVertical_bias=".35"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:text="@string/label_acquiring_gps_lock"
-                android:textColor="#000000"
+                android:textColor="#FFFFFF"
                 android:textAlignment="center"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -278,7 +286,7 @@
         android:backgroundTint="@color/trip_toggle_disabled"
         android:enabled="false"
         android:text="@string/start_trip"
-        android:textColor="@color/white"
+        android:textColor="@color/colorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

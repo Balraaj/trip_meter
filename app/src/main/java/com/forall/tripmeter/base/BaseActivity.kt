@@ -41,7 +41,7 @@ abstract class BaseActivity<VM : BaseViewModel> : AppCompatActivity(){
 
     private fun buildActivityComponent(): ActivityComponent{
         return DaggerActivityComponent.factory()
-            .create(ActivityModule(this), (application as AppComponentProvider).getAppComponent())
+            .create(this, (application as AppComponentProvider).getAppComponent())
     }
 
     protected open fun setupObservers() {

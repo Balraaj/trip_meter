@@ -9,6 +9,7 @@ import com.forall.tripmeter.common.Constants.TRIP_METER_PREFS
 import com.forall.tripmeter.database.Database
 import com.forall.tripmeter.prefs.TripMeterSharedPrefs
 import com.forall.tripmeter.repository.Repository
+import com.forall.tripmeter.repository.ServiceRepository
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -40,5 +41,12 @@ class ApplicationModule {
     @Provides
     fun provideRepository(database: Database, prefs: TripMeterSharedPrefs):Repository{
         return Repository(database, prefs)
+    }
+
+    @Singleton
+    @Provides
+    fun provideServiceRepository(database: Database,
+                                 prefs: TripMeterSharedPrefs): ServiceRepository{
+        return ServiceRepository(database, prefs)
     }
 }

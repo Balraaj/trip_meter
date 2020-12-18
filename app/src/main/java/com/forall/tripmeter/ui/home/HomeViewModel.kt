@@ -1,14 +1,15 @@
 package com.forall.tripmeter.ui.home
 
 import android.location.Location
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
 import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
-import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
 import com.forall.tripmeter.database.entity.Trip
+import com.forall.tripmeter.database.entity.TripLocation
 import com.forall.tripmeter.repository.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 class HomeViewModel(repo: Repository): BaseViewModel(repo) {
+
+    var permissionAllowed = false
 
     /**
      * Signifies if a new trip is active.
@@ -26,11 +29,15 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
 
     val currentTripDelta: MutableLiveData<Trip> = MutableLiveData()
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
-    private val locationData: MutableList<Location> = LinkedList()
-
-    var address: String = NA
+    private val locationData: MutableList<TripLocation> = LinkedList()
 
     val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
+
+
+    fun setTripActive(value: Boolean) { repo.isTripActive(value) }
+
+    fun getLastKnownLocation(): LiveData<TripLocation> = repo.getLastKnownLocation()
+    fun getLastKnownLocationNotLive(): TripLocation = repo.getLastKnownLocationNotLive()
 
 
     /**
@@ -38,12 +45,12 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * this function is responsible for notifying the UI of changes.
      * @author Balraj
      */
-    fun postNewLocation(location: Location){
+    fun postNewLocation(location: TripLocation){
         updateSpeedData(location)
         updateTripDelta(location)
     }
 
-    private fun updateSpeedData(location: Location){
+    private fun updateSpeedData(location: TripLocation){
         if(locationData.size == SPEED_CACHE_SIZE) { locationData.removeAt(0) }
         locationData.add(location)
         postUpdatedSpeedDataToUI()
@@ -52,8 +59,8 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     /**
      * Update the delta with current location information.
      */
-    private fun updateTripDelta(location: Location) {
-        currentTripDelta.postValue(Trip.defaultDelta(location, address))
+    private fun updateTripDelta(location: TripLocation) {
+        currentTripDelta.postValue(Trip.defaultDelta(location))
     }
 
     private fun setGPSLockAcquired(){
@@ -119,7 +126,10 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * @author Balraj
      */
     private fun getDistanceAndSpeed(trip: Trip, newDelta: Trip): Pair<Float, Int>{
-        val currentLocation = locationData[locationData.size - 1]
+        val currentTripLocation = locationData[locationData.size - 1]
+        val currentLocation = Location(LAST_LOCATION)
+        currentLocation.latitude = currentTripLocation.lat
+        currentLocation.longitude = currentTripLocation.lon
         val lastLocation = Location(LAST_LOCATION)
         lastLocation.latitude = trip.endLat
         lastLocation.longitude = trip.endLong

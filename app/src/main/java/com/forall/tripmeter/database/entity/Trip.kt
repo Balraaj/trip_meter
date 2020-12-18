@@ -49,11 +49,11 @@ class Trip(
 
     companion object {
 
-        fun defaultDelta(location: Location, address: String): Trip{
-            return Trip(0, address, address,
+        fun defaultDelta(location: TripLocation): Trip{
+            return Trip(0, location.address, location.address,
                 System.currentTimeMillis(),
                 System.currentTimeMillis(),
-                0.0f, 0, location.latitude, location.longitude, location.latitude, location.longitude)
+                0.0f, 0, location.lat, location.lon, location.lat, location.lon)
         }
 
     }

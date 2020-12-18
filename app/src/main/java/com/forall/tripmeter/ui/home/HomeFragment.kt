@@ -69,14 +69,19 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             it?.let {
                 updateUIForActiveTrip(it)
                 if(!it) {
+                    viewModel.setTripActive(false)
                     resetCurrentTripView()
-//                    verifyTripConstraintsAndCommit()
+                    verifyTripConstraintsAndCommit()
                 }
             }
         })
 
         viewModel.insertTrip.observe(this, Observer {
-            if(it) { viewModel.insertTrip.value = false; viewModel.insertTrip() }
+            if(it) {
+                viewModel.setTripActive(true)
+                viewModel.insertTrip.value = false;
+                viewModel.insertTrip()
+            }
         })
 
         viewModel.gpsLockAcquired.observe(this, Observer {
@@ -84,6 +89,12 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
                 animateCard(container_gps_lock, false)
                 btn_trip_start.isEnabled = true
                 updateTripToggleButton(false)
+            }
+        })
+
+        viewModel.getLastKnownLocation().observe(this, Observer {
+            if(it != null && it.isNotDefaultLocation()){
+                viewModel.postNewLocation(it)
             }
         })
     }
@@ -146,11 +157,5 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
         tv_current_address.text = EMPTY_STRING
         tv_distance.text = ZERO_FLOAT.toString()
         tv_trip_speed.text = ZERO.toString()
-    }
-
-    private fun dummy(){
-        val list = mutableListOf<Int>()
-        val iterator = list.iterator()
-        iterator.remove()
     }
 }

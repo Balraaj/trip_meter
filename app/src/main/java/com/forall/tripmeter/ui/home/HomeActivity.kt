@@ -1,20 +1,21 @@
 package com.forall.tripmeter.ui.home
 
-import android.Manifest
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender.SendIntentException
-import android.location.Geocoder
+import android.content.ServiceConnection
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.IBinder
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.appcompat.widget.Toolbar
@@ -23,8 +24,8 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
-import com.forall.tripmeter.common.Constants.NA
 import com.forall.tripmeter.di.component.ActivityComponent
+import com.forall.tripmeter.service.LocationService
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.common.api.ApiException
@@ -39,8 +40,6 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import kotlinx.android.synthetic.main.content_main.*
-import java.io.IOException
-import java.util.*
 
 
 class HomeActivity : BaseActivity<HomeViewModel>() {
@@ -52,11 +51,21 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         private const val LOCATION_SETTINGS_REQUEST = 1001
     }
 
-    private lateinit var geocoder: Geocoder
+    private var locationService: LocationService? = null
     private lateinit var navController: NavController
     private lateinit var locationRequest: LocationRequest
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            val binder = service as LocationService.ServiceBinder
+            locationService = binder.getService()
+            if(viewModel.permissionAllowed) { startLocationUpdates() }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            locationService = null
+        }
+    }
 
     override fun provideLayoutId() = R.layout.content_main
     override fun injectDependencies(ac: ActivityComponent) = ac.inject(this)
@@ -69,10 +78,30 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         navController = findNavController(R.id.nav_host_fragment)
         nav_bar_bottom.setupWithNavController(navController)
         setupNavLocationChangeListener()
-        geocoder = Geocoder(this, Locale.getDefault())
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        buildFusedLocationRequest()
+        createLocationRequest()
         checkPermissionsAndContinue()
+    }
+
+    /**
+     * When activity starts bind the location service in order to receive
+     * the location updates.
+     * @author Balraj
+     */
+    override fun onStart() {
+        super.onStart()
+        viewModel.permissionAllowed = false
+        val serviceIntent = Intent(this, LocationService::class.java)
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    /**
+     * When activity stops unbind the location service,
+     * which signals the service to promote itself to foreground service.
+     * @author Balraj
+     */
+    override fun onStop() {
+        super.onStop()
+        unbindService(serviceConnection)
     }
 
     private fun setupNavLocationChangeListener(){
@@ -81,19 +110,18 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         }
     }
 
-
     /**
      * Builds the location request by configuring the location request interval
      * and the accuracy of location request.
      * @author Balraj
      */
-    private fun buildFusedLocationRequest(){
+    private fun createLocationRequest(){
         locationRequest = LocationRequest()
-        locationRequest.interval = LOCATION_INTERVAL
-        locationRequest.fastestInterval = LOCATION_INTERVAL
+        locationRequest.interval = 2000
+        locationRequest.fastestInterval = 2000
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-
+    
     /**
      * Before starting location updates we need to check if all the required permissions
      * are granted, if not then notify the user with appropriate message.
@@ -101,10 +129,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
      */
     private fun checkPermissionsAndContinue(){
         Dexter.withContext(this)
-            .withPermissions(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
+            .withPermissions(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION)
             .withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                     if(report == null) { return }
@@ -131,13 +156,13 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
     }
 
     /**
-     * Starts location updates from fused provider as well as LocationManager.
+     * Starts location updates from location service and LocationManager for better accuracy.
      * we do this for accuracy.
      * @author Balraj
      */
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        locationService?.requestLocationUpdates()
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationManager.requestLocationUpdates(GPS_PROVIDER, LOCATION_INTERVAL, 5f, locationListener)
     }
@@ -173,26 +198,16 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PERMISSION_REQUEST) { checkPermissionsAndContinue() }
         else if(requestCode == LOCATION_SETTINGS_REQUEST){
-            if(resultCode == Activity.RESULT_OK) { startLocationUpdates() }
+            if(resultCode == Activity.RESULT_OK) {
+                viewModel.permissionAllowed = true
+                startLocationUpdates()
+            }
             else {
                 var message = getString(R.string.enable_gps)
                 showConfirmationDialog(message, { checkGPSStatus() }){
                     message = getString(R.string.location_required)
                     showNotificationDialog(message) { finish() }
                 }
-            }
-        }
-    }
-
-    private var locationCallback: LocationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            val locationList = locationResult.locations
-            if (locationList.isNotEmpty()) {
-                val location = locationList.first()
-                setAddressForLocation(location)
-                Handler(Looper.getMainLooper()).postDelayed({
-                    viewModel.postNewLocation(location)
-                }, 1000)
             }
         }
     }
@@ -218,9 +233,11 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         try {
             val response = task.getResult(ApiException::class.java)
             if(response.locationSettingsStates.isGpsPresent &&
-               response.locationSettingsStates.isGpsUsable) { startLocationUpdates() }
+               response.locationSettingsStates.isGpsUsable) {
+                viewModel.permissionAllowed = true
+                startLocationUpdates()
+            }
             else { throw ApiException(Status(6)) }
-
         }
         catch (ex: ApiException) {
             if (ex.statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
@@ -231,24 +248,6 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
                 catch (e: SendIntentException) { }
             }
         }
-    }
-
-    /**
-     * Tries to determine the address of given location.
-     * if no address is found then sets 'Not Available' as address.
-     * @author Balraj
-     */
-    private fun setAddressForLocation(loc: Location){
-        Thread {
-            try {
-                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-                if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
-                    viewModel?.address = addresses[0].getAddressLine(0)
-                }
-                else { viewModel?.address = NA }
-            }
-            catch (e: IOException) { viewModel?.address = NA }
-        }.start()
     }
 
     private fun setupAndLoadAds(){

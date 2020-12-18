@@ -17,3 +17,8 @@ annotation class FragmentScope
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
 annotation class ViewModelScope
+
+@Scope
+@MustBeDocumented
+@Retention(AnnotationRetention.SOURCE)
+annotation class ServiceScope

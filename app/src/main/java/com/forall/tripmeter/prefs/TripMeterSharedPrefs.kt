@@ -4,6 +4,13 @@ import android.content.SharedPreferences
 
 class TripMeterSharedPrefs(private val prefs: SharedPreferences) {
 
-    fun write() = prefs.edit().putString("WHAT", "MOTHERFUCKER").apply()
-    fun read() = prefs.getString("WHAT", "")
+    private companion object {
+        private const val IS_TRIP_ACTIVE = "IS_TRIP_ACTIVE"
+    }
+
+    var isTripActive: Boolean
+        get() = prefs.getBoolean(IS_TRIP_ACTIVE, false)
+        set(value){ prefs.edit().putBoolean(IS_TRIP_ACTIVE, value).commit() }
+
+
 }

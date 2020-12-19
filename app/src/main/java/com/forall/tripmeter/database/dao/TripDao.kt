@@ -23,4 +23,7 @@ interface TripDao {
 
     @Query("DELETE FROM trip WHERE tripId = (SELECT MAX(tripId) FROM trip)")
     fun deleteLatestTrip(): Int
+
+    @Query("SELECT COUNT(*) FROM trip")
+    fun getTripCount(): Int
 }

@@ -2,6 +2,7 @@ package com.forall.tripmeter.common
 
 object Constants {
 
+    const val MAX_TRIPS = 42
     const val SPEED_CACHE_SIZE = 2
     const val ZERO_FLOAT = 0.0f
     const val ZERO = 0

@@ -15,6 +15,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.forall.tripmeter.common.AppComponentProvider
+import com.forall.tripmeter.common.inKmph
 import com.forall.tripmeter.di.component.DaggerServiceComponent
 import com.forall.tripmeter.repository.ServiceRepository
 import com.google.android.gms.location.*
@@ -33,6 +34,7 @@ class LocationService : Service() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var notificationManager: NotificationManager
     private lateinit var locationClient: FusedLocationProviderClient
+    private lateinit var lastKnownLocation: Location
 
     private var locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
@@ -147,7 +149,6 @@ class LocationService : Service() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Current Speed")
             .setContentText(text)
-            .setOngoing(true)
             .setPriority(Notification.PRIORITY_HIGH)
             .setSmallIcon(com.forall.tripmeter.R.mipmap.ic_launcher)
             .setTicker(text)
@@ -158,14 +159,21 @@ class LocationService : Service() {
 
     private fun onNewLocation(location: Location) {
         if (serviceIsRunningInForeground()) {
-            notificationManager.notify(NOTIFICATION_ID, getNotification(location.speed.toInt()))
+            notificationManager.notify(NOTIFICATION_ID, getNotification(location.speed.inKmph()))
         }
         setLocationAddress(location)
         storeLocationInRoom(location)
     }
 
     private fun storeLocationInRoom(location: Location) = GlobalScope.launch(Dispatchers.IO) {
+        if(::lastKnownLocation.isInitialized){
+            if(location.speed - lastKnownLocation.speed > 10){
+                location.speed = lastKnownLocation.speed + 10
+            }
+            if(location.speed > 55) { location.speed = 55F }
+        }
         repo.updateLocation(location)
+        lastKnownLocation = location
     }
 
     /**

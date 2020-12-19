@@ -15,3 +15,5 @@ object Utils {
         return BigDecimal(meters / 1000.0).setScale(1, BigDecimal.ROUND_DOWN).toFloat()
     }
 }
+
+fun Float.inKmph(): Int = (this * 3.6).toInt()

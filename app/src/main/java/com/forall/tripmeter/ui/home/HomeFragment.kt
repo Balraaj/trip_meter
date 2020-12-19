@@ -37,8 +37,7 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
     override fun setupView(view: View) {
         btn_trip_start.setOnClickListener {
             if(viewModel.tripActive.value != null){
-                viewModel.tripActive.value = !viewModel.tripActive.value!!
-                if(viewModel.tripActive.value!!) { viewModel.insertTrip.value = true }
+                viewModel.checkDatabaseSizeLimitAndInsertTrip()
             }
         }
     }
@@ -84,6 +83,7 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             }
         })
 
+        /* Only allow user to start trip if we have a GPS lock */
         viewModel.gpsLockAcquired.observe(this, Observer {
             if(it){
                 animateCard(container_gps_lock, false)
@@ -92,9 +92,18 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             }
         })
 
+        /* Whenever LocationService posts a new location inform the UI */
         viewModel.getLastKnownLocation().observe(this, Observer {
             if(it != null && it.isNotDefaultLocation()){
                 viewModel.postNewLocation(it)
+            }
+        })
+
+        /* If max no. of trips are stored then show the option to upgrade to pro */
+        viewModel.tripDatabaseFull.observe(this, Observer {
+            if(it){
+                viewModel.tripDatabaseFull.value = false
+                showNotificationDialog(getString(R.string.db_full)){}
             }
         })
     }

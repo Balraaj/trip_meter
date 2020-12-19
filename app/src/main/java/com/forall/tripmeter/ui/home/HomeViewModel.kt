@@ -5,8 +5,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
+import com.forall.tripmeter.common.Constants
 import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
+import com.forall.tripmeter.common.Constants.MAX_TRIPS
 import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.database.entity.TripLocation
@@ -29,15 +31,22 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
 
     val currentTripDelta: MutableLiveData<Trip> = MutableLiveData()
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
+    val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
+    val tripDatabaseFull: MutableLiveData<Boolean> = MutableLiveData(false)
+
     private val locationData: MutableList<TripLocation> = LinkedList()
 
-    val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
-
+    fun checkDatabaseSizeLimitAndInsertTrip() = viewModelScope.launch(Dispatchers.IO){
+        if(MAX_TRIPS == repo.getTripCount()) { tripDatabaseFull.postValue(true) }
+        else{
+            tripActive.postValue(!tripActive.value!!)
+            if(!tripActive.value!!) { insertTrip.postValue(true) }
+        }
+    }
 
     fun setTripActive(value: Boolean) { repo.isTripActive(value) }
 
     fun getLastKnownLocation(): LiveData<TripLocation> = repo.getLastKnownLocation()
-    fun getLastKnownLocationNotLive(): TripLocation = repo.getLastKnownLocationNotLive()
 
 
     /**
@@ -134,9 +143,10 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
         lastLocation.latitude = trip.endLat
         lastLocation.longitude = trip.endLong
         val distance = currentLocation.distanceTo(lastLocation) + trip.distance
-        val speed = if(distance > 200) {
+        var speed = if(distance > 200) {
             (distance / ((newDelta.startTime - trip.startTime) / 1000) * 3.6 ).toInt()
         } else { 0 }
+        if(speed > 200) { speed = 200 }
         return Pair(distance, speed)
     }
 

@@ -8,6 +8,7 @@ object Constants {
 
     const val MINIMUM_TRIP_DISTANCE_METER = 500
 
+    const val FCM_TOPIC = "TRIP_METER"
     const val TRIP_METER_DATABASE = "trip-meter-database"
     const val TRIP_METER_PREFS = "com.forall.tripmeter.prefs"
     const val EMPTY_STRING = ""

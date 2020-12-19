@@ -11,6 +11,7 @@ class Repository(private val db: Database,
     fun isTripActive(value: Boolean) { prefs.isTripActive = value }
 
     fun insertTrip(trip: Trip) = db.tripDao().insertTrip(trip)
+
     fun deleteLatestTrip() = db.tripDao().deleteLatestTrip()
 
     fun updateCurrentTrip(t: Trip) {
@@ -22,8 +23,12 @@ class Repository(private val db: Database,
 
     fun getLatestTrip() = db.tripDao().getLatestTrip()
 
+    fun getTripCount() =  db.tripDao().getTripCount()
+
     fun insertLocation(location: TripLocation) = db.locationDao().insertTripLocation(location)
+
     fun getLastKnownLocation() = db.locationDao().getLastKnownLocation()
+
     fun getLastKnownLocationNotLive(): TripLocation {
         return db.locationDao().getLastKnownLocationNotLive()
     }

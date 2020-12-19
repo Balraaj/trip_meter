@@ -38,4 +38,5 @@
     <string name="nav_how_to">HOW TO</string>
     <string name="trip_not_commited">Trip not recorded!\nMinimum distance of 0.5 KM is required.</string>
     <string name="label_acquiring_gps_lock">Acquiring GPS information, Please wait ...</string>
+    <string name="db_full">Sorry! you reached the limit\n to enjoy unlimited trip records and many more features please upgrade to TRIP METER PRO</string>
 </resources>

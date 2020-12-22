@@ -6,6 +6,7 @@ object Constants {
     const val SPEED_CACHE_SIZE = 2
     const val ZERO_FLOAT = 0.0f
     const val ZERO = 0
+    const val NO_SPEED = "0"
 
     const val MINIMUM_TRIP_DISTANCE_METER = 500
 

@@ -26,8 +26,6 @@ import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
 import com.forall.tripmeter.di.component.ActivityComponent
 import com.forall.tripmeter.service.LocationService
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
@@ -74,7 +72,6 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        setupAndLoadAds()
         navController = findNavController(R.id.nav_host_fragment)
         nav_bar_bottom.setupWithNavController(navController)
         setupNavLocationChangeListener()
@@ -248,11 +245,5 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
                 catch (e: SendIntentException) { }
             }
         }
-    }
-
-    private fun setupAndLoadAds(){
-        MobileAds.initialize(this) {}
-        val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
     }
 }

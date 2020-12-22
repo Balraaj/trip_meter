@@ -11,6 +11,4 @@ class TripMeterSharedPrefs(private val prefs: SharedPreferences) {
     var isTripActive: Boolean
         get() = prefs.getBoolean(IS_TRIP_ACTIVE, false)
         set(value){ prefs.edit().putBoolean(IS_TRIP_ACTIVE, value).commit() }
-
-
 }

@@ -35,15 +35,12 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
     override fun injectDependencies(fc: FragmentComponent) = fc.inject(this)
 
     override fun setupView(view: View) {
-        btn_trip_start.setOnClickListener {
-            if(viewModel.tripActive.value != null){
-                viewModel.checkDatabaseSizeLimitAndInsertTrip()
-            }
-        }
+        btn_trip_start.setOnClickListener { viewModel.performTripStateToggle() }
     }
 
     override fun onResume() {
         super.onResume()
+        viewModel.tripActive.value = viewModel.isTripActive()
         if(viewModel.tripActive.value != null && viewModel.tripActive.value!!){
             updateTripToggleButton(true)
             animateCard(container_active_trip, true)
@@ -52,9 +49,16 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
 
     override fun setupObservers() {
         super.setupObservers()
-        viewModel.averageSpeed.observe(this, Observer {
-            tv_speed.text = if(it == EMPTY_STRING) { SPEED_PLACE_HOLDER } else { it }
+
+        /* Whenever LocationService posts a new location inform the UI */
+        viewModel.getLastKnownLocation().observe(this, Observer {
+            if(it != null && it.isNotDefaultLocation()){
+                viewModel.postNewLocation(it)
+            }
         })
+
+        /* Average speed is calculated based on location cache we maintain */
+        viewModel.averageSpeed.observe(this, Observer { tv_speed.text = it })
 
         viewModel.currentTripDelta.observe(this, Observer {
             if(it != null && viewModel.tripActive.value != null && viewModel.tripActive.value!!) {
@@ -64,22 +68,14 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             tv_current_address_top.text = it.startAddress ?: EMPTY_STRING
         })
 
-        viewModel.tripActive.observe(this, Observer {
-            it?.let {
-                updateUIForActiveTrip(it)
-                if(!it) {
-                    viewModel.setTripActive(false)
-                    resetCurrentTripView()
-                    verifyTripConstraintsAndCommit()
-                }
-            }
-        })
+        viewModel.tripActive.observe(this, Observer { if (it) updateUIForActiveTrip(true) })
 
-        viewModel.insertTrip.observe(this, Observer {
-            if(it) {
-                viewModel.setTripActive(true)
-                viewModel.insertTrip.value = false;
-                viewModel.insertTrip()
+        viewModel.tripEnded.observe(this, Observer {
+            if(it){
+                viewModel.tripEnded.value = false
+                updateUIForActiveTrip(false)
+                resetCurrentTripView()
+                verifyTripConstraintsAndCommit()
             }
         })
 
@@ -88,22 +84,7 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
             if(it){
                 animateCard(container_gps_lock, false)
                 btn_trip_start.isEnabled = true
-                updateTripToggleButton(false)
-            }
-        })
-
-        /* Whenever LocationService posts a new location inform the UI */
-        viewModel.getLastKnownLocation().observe(this, Observer {
-            if(it != null && it.isNotDefaultLocation()){
-                viewModel.postNewLocation(it)
-            }
-        })
-
-        /* If max no. of trips are stored then show the option to upgrade to pro */
-        viewModel.tripDatabaseFull.observe(this, Observer {
-            if(it){
-                viewModel.tripDatabaseFull.value = false
-                showNotificationDialog(getString(R.string.db_full)){}
+                updateTripToggleButton(viewModel.tripActive.value?:false)
             }
         })
     }

@@ -5,10 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
-import com.forall.tripmeter.common.Constants
-import com.forall.tripmeter.common.Constants.EMPTY_STRING
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
-import com.forall.tripmeter.common.Constants.MAX_TRIPS
+import com.forall.tripmeter.common.Constants.NO_SPEED
 import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.database.entity.TripLocation
@@ -27,27 +25,31 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * this value is only changed when user toggles the trip start button.
      */
     var tripActive: MutableLiveData<Boolean> = MutableLiveData(false)
-    var insertTrip: MutableLiveData<Boolean> = MutableLiveData(false)
+    var tripEnded: MutableLiveData<Boolean> = MutableLiveData(false)
 
     val currentTripDelta: MutableLiveData<Trip> = MutableLiveData()
     val averageSpeed: MutableLiveData<String> = MutableLiveData()
     val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
-    val tripDatabaseFull: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val locationData: MutableList<TripLocation> = LinkedList()
 
-    fun checkDatabaseSizeLimitAndInsertTrip() = viewModelScope.launch(Dispatchers.IO){
-        if(MAX_TRIPS == repo.getTripCount()) { tripDatabaseFull.postValue(true) }
-        else{
-            tripActive.postValue(!tripActive.value!!)
-            if(!tripActive.value!!) { insertTrip.postValue(true) }
+    fun performTripStateToggle() = viewModelScope.launch(Dispatchers.IO) {
+        /* If current trip state is ended that means, a new trip have been started */
+        if (!tripActive.value!!) {
+            repo.isTripActive(true)
+            insertTrip()
+            tripActive.postValue(true)
+            tripEnded.postValue(false)
+        } else {
+            repo.isTripActive(false)
+            tripActive.postValue(false)
+            tripEnded.postValue(true)
         }
     }
 
-    fun setTripActive(value: Boolean) { repo.isTripActive(value) }
+    fun isTripActive() = repo.isTripActive()
 
     fun getLastKnownLocation(): LiveData<TripLocation> = repo.getLastKnownLocation()
-
 
     /**
      * Updates the speed data as well as trip delta with new location information.
@@ -85,17 +87,17 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
      * @author Balraj
      */
     private fun postUpdatedSpeedDataToUI() = viewModelScope.launch {
-        if(locationData.size < SPEED_CACHE_SIZE) { averageSpeed.postValue(EMPTY_STRING) }
+        setGPSLockAcquired()
+        if(locationData.size < SPEED_CACHE_SIZE) { averageSpeed.postValue(NO_SPEED) }
         else{
-            val sum = locationData.asSequence().sumBy { it.speed.toInt() }
+            val sum = locationData.sumBy { it.speed.toInt() }
             val speed = (sum * 3.6) / locationData.size
             averageSpeed.postValue(speed.toInt().toString())
-            setGPSLockAcquired()
         }
     }
 
 
-    fun insertTrip() = GlobalScope.launch(Dispatchers.IO) {
+    private fun insertTrip() = GlobalScope.launch(Dispatchers.IO) {
         repo.insertTrip(currentTripDelta.value!!)
     }
 
@@ -153,13 +155,4 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     fun getLatestTrip() = repo.getLatestTrip()
 
     fun getAllTrips() = repo.getAllTrips()
-
-
-    fun getLatestSpeed(): String{
-        return if(locationData.isEmpty()) { EMPTY_STRING }
-        else {
-            (locationData[locationData.size-1].speed * 3.6).toInt().toString()
-        }
-    }
-
 }

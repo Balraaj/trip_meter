@@ -8,6 +8,7 @@ class ServiceRepository(private val db: Database,
                         private val prefs: TripMeterSharedPrefs) {
 
     fun isTripActive(): Boolean = prefs.isTripActive
+    fun setTripActive(state: Boolean) { prefs.isTripActive = state }
 
     fun updateLocation(location: Location){
         db.locationDao().updateLocation(location.latitude,

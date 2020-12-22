@@ -8,6 +8,8 @@ import com.forall.tripmeter.prefs.TripMeterSharedPrefs
 class Repository(private val db: Database,
                  private val prefs: TripMeterSharedPrefs) {
 
+    fun isTripActive() = prefs.isTripActive
+
     fun isTripActive(value: Boolean) { prefs.isTripActive = value }
 
     fun insertTrip(trip: Trip) = db.tripDao().insertTrip(trip)
@@ -15,21 +17,15 @@ class Repository(private val db: Database,
     fun deleteLatestTrip() = db.tripDao().deleteLatestTrip()
 
     fun updateCurrentTrip(t: Trip) {
-        db.tripDao().updateTrip(t.tripId, t.endAddress, t.endTime,
-            t.endLat, t.endLong, t.distance, t.speed)
+        db.tripDao().updateTrip(t.tripId, t.endAddress,
+            t.endTime, t.endLat, t.endLong, t.distance, t.speed)
     }
 
     fun getAllTrips() = db.tripDao().getAllTrips()
 
     fun getLatestTrip() = db.tripDao().getLatestTrip()
 
-    fun getTripCount() =  db.tripDao().getTripCount()
-
     fun insertLocation(location: TripLocation) = db.locationDao().insertTripLocation(location)
 
     fun getLastKnownLocation() = db.locationDao().getLastKnownLocation()
-
-    fun getLastKnownLocationNotLive(): TripLocation {
-        return db.locationDao().getLastKnownLocationNotLive()
-    }
 }

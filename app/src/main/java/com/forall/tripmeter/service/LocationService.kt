@@ -2,7 +2,6 @@ package com.forall.tripmeter.service
 
 import android.annotation.SuppressLint
 import android.app.*
-import android.app.NotificationManager.IMPORTANCE_DEFAULT
 import android.app.NotificationManager.IMPORTANCE_HIGH
 import android.content.Context
 import android.content.Intent
@@ -26,6 +25,15 @@ import java.io.IOException
 import java.util.*
 
 class LocationService : Service() {
+
+    companion object {
+        private val TAG = LocationService::class.java.simpleName
+        private const val CHANNEL_ID = "tripMeter_channel_01"
+        private const val UPDATE_INTERVAL = 2000L
+        private const val NOTIFICATION_ID = 12345678
+        private const val MIN_DISPLACEMENT = 5F
+        private const val SPEED_CAP = 55F
+    }
 
     private val binder: IBinder = ServiceBinder()
 
@@ -68,7 +76,8 @@ class LocationService : Service() {
     private fun createLocationRequest(){
         locationRequest = LocationRequest()
         locationRequest.interval = UPDATE_INTERVAL
-        locationRequest.fastestInterval = FASTEST_UPDATE_INTERVAL
+        locationRequest.fastestInterval = UPDATE_INTERVAL
+        locationRequest.smallestDisplacement = MIN_DISPLACEMENT
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
@@ -115,6 +124,7 @@ class LocationService : Service() {
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        repo.setTripActive(false)
         repo.removeLastKnownLocation()
         removeLocationUpdates()
         stopSelf()
@@ -170,7 +180,7 @@ class LocationService : Service() {
             if(location.speed - lastKnownLocation.speed > 10){
                 location.speed = lastKnownLocation.speed + 10
             }
-            if(location.speed > 55) { location.speed = 55F }
+            if(location.speed > SPEED_CAP) { location.speed = SPEED_CAP }
         }
         repo.updateLocation(location)
         lastKnownLocation = location
@@ -207,22 +217,15 @@ class LocationService : Service() {
     private fun setLocationAddress(loc: Location){
         Thread{
             try {
-            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-            if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
-                val address = addresses[0].getAddressLine(0)
-                repo.updateCurrentAddress(address)
+                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
+                    val address = addresses[0].getAddressLine(0)
+                    repo.updateCurrentAddress(address)
+                }
             }
-        }
-        catch (e: IOException) {
-            Log.d(TAG, "GEO_CODER: FAILED TO GET LOCATION ADDRESS")
-        }}.start()
-    }
-
-    companion object {
-        private val TAG = LocationService::class.java.simpleName
-        private const val CHANNEL_ID = "tripMeter_channel_01"
-        private const val UPDATE_INTERVAL = 1000L
-        private const val FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2
-        private const val NOTIFICATION_ID = 12345678
+            catch (e: IOException) {
+                Log.d(TAG, "GEO_CODER: FAILED TO GET LOCATION ADDRESS")
+            }
+        }.start()
     }
 }

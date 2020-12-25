@@ -12,11 +12,11 @@ import kotlinx.android.synthetic.main.fragment_trips.*
 class TripsFragment: BaseFragment<HomeViewModel>() {
     override fun provideLayoutId() = R.layout.fragment_trips
     override fun injectDependencies(fc: FragmentComponent) = fc.inject(this)
-    override fun setupView(view: View) {
-    }
+    override fun setupView(view: View) {}
 
-    override fun setupObservers() {
-        super.setupObservers()
+    override fun onResume() {
+        super.onResume()
+        viewModel.setMeasurementUnit()
         viewModel.getAllTrips().observe(this, Observer { updateUI(it) })
     }
 
@@ -36,7 +36,7 @@ class TripsFragment: BaseFragment<HomeViewModel>() {
         else{
             rv_trips.visibility = View.VISIBLE
             label_no_trips.visibility = View.GONE
-            rv_trips.adapter = TripAdapter(visibleTrips)
+            rv_trips.adapter = TripAdapter(viewModel.unitMiles, visibleTrips)
         }
     }
 }

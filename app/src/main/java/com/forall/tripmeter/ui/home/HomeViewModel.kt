@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.forall.tripmeter.base.BaseViewModel
+import com.forall.tripmeter.common.Constants.FACTOR_METER_TO_KM
+import com.forall.tripmeter.common.Constants.FACTOR_METER_TO_MILES
 import com.forall.tripmeter.common.Constants.LAST_LOCATION
 import com.forall.tripmeter.common.Constants.NO_SPEED
 import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
@@ -17,6 +19,14 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 class HomeViewModel(repo: Repository): BaseViewModel(repo) {
+
+    /**
+     * Properties to store measurement factor information,
+     * depending on the Kmph/Mph we need different factors and conversions
+     */
+    var unitMiles = false
+    var measurementFactor = 0.0
+
 
     var permissionAllowed = false
 
@@ -32,6 +42,11 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
     val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val locationData: MutableList<TripLocation> = LinkedList()
+
+    fun setMeasurementUnit(){
+        unitMiles = repo.isMeasurementUnitMiles()
+        measurementFactor = if(unitMiles) { FACTOR_METER_TO_MILES } else { FACTOR_METER_TO_KM }
+    }
 
     fun performTripStateToggle() = viewModelScope.launch(Dispatchers.IO) {
         /* If current trip state is ended that means, a new trip have been started */
@@ -91,7 +106,7 @@ class HomeViewModel(repo: Repository): BaseViewModel(repo) {
         if(locationData.size < SPEED_CACHE_SIZE) { averageSpeed.postValue(NO_SPEED) }
         else{
             val sum = locationData.sumBy { it.speed.toInt() }
-            val speed = (sum * 3.6) / locationData.size
+            val speed = (sum * measurementFactor) / locationData.size
             averageSpeed.postValue(speed.toInt().toString())
         }
     }

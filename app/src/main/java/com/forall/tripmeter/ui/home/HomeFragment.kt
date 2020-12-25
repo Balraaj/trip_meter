@@ -40,10 +40,29 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
 
     override fun onResume() {
         super.onResume()
+        setupUIForUserMeasurementUnit()
         viewModel.tripActive.value = viewModel.isTripActive()
         if(viewModel.tripActive.value != null && viewModel.tripActive.value!!){
             updateTripToggleButton(true)
             animateCard(container_active_trip, true)
+        }
+        else{
+            updateTripToggleButton(false)
+            animateCard(container_active_trip, false)
+        }
+    }
+
+    private fun setupUIForUserMeasurementUnit(){
+        viewModel.setMeasurementUnit()
+        if(viewModel.unitMiles){
+            label_km.text = getString(R.string.label_miles)
+            label_kmph.text = getString(R.string.label_miles_per_hour)
+            label_trip_kmph.text = getString(R.string.label_miles_per_hour)
+        }
+        else{
+            label_km.text = getString(R.string.label_km)
+            label_kmph.text = getString(R.string.label_km_ph)
+            label_trip_kmph.text = getString(R.string.label_km_ph)
         }
     }
 
@@ -133,12 +152,20 @@ class HomeFragment : BaseFragment<HomeViewModel>() {
 
 
     private fun updateCurrentTripView(){
-        val trip = viewModel.getLatestTrip() ?: return
-        tv_trip_start_time.text = Utils.millisToTripTimeFormat(trip.startTime)
-        tv_start_address.text = trip.startAddress
-        tv_current_address.text = trip.endAddress
-        tv_distance.text = Utils.metersToKM(trip.distance).toString()
-        tv_trip_speed.text = trip.speed.toString()
+        val t = viewModel.getLatestTrip() ?: return
+        tv_trip_start_time.text = Utils.millisToTripTimeFormat(t.startTime)
+        tv_start_address.text = t.startAddress
+        tv_current_address.text = t.endAddress
+
+        /* Set speed and distance based on the chosen measurement unit */
+        if(viewModel.unitMiles) {
+            tv_distance.text = Utils.metersToMiles(t.distance).toString()
+            tv_trip_speed.text = Utils.kmphToMph(t.speed).toString()
+        }
+        else {
+            tv_distance.text = Utils.metersToKM(t.distance).toString()
+            tv_trip_speed.text = t.speed.toString()
+        }
     }
 
     private fun resetCurrentTripView(){

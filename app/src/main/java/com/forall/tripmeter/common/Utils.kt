@@ -14,6 +14,16 @@ object Utils {
     fun metersToKM(meters: Float): Float{
         return BigDecimal(meters / 1000.0).setScale(1, BigDecimal.ROUND_DOWN).toFloat()
     }
+
+    fun metersToMiles(meters: Float): Float{
+        return BigDecimal(meters / 1609.0).setScale(1, BigDecimal.ROUND_DOWN).toFloat()
+    }
+
+    fun kmphToMph(kmph: Int): Int{
+        return (kmph / 1.609).toInt()
+    }
 }
 
-fun Float.inKmph(): Int = (this * 3.6).toInt()
+fun Float.inKmph(): Int = (this * Constants.FACTOR_METER_TO_KM).toInt()
+
+fun Float.inMiles(): Int = (this * Constants.FACTOR_METER_TO_MILES).toInt()

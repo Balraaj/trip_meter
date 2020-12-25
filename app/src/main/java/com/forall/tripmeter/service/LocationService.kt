@@ -13,8 +13,10 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.forall.tripmeter.R
 import com.forall.tripmeter.common.AppComponentProvider
 import com.forall.tripmeter.common.inKmph
+import com.forall.tripmeter.common.inMiles
 import com.forall.tripmeter.di.component.DaggerServiceComponent
 import com.forall.tripmeter.repository.ServiceRepository
 import com.google.android.gms.location.*
@@ -31,7 +33,6 @@ class LocationService : Service() {
         private const val CHANNEL_ID = "tripMeter_channel_01"
         private const val UPDATE_INTERVAL = 2000L
         private const val NOTIFICATION_ID = 12345678
-        private const val MIN_DISPLACEMENT = 5F
         private const val SPEED_CAP = 55F
     }
 
@@ -77,7 +78,6 @@ class LocationService : Service() {
         locationRequest = LocationRequest()
         locationRequest.interval = UPDATE_INTERVAL
         locationRequest.fastestInterval = UPDATE_INTERVAL
-        locationRequest.smallestDisplacement = MIN_DISPLACEMENT
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
@@ -98,7 +98,7 @@ class LocationService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int) = START_NOT_STICKY
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int) = START_STICKY
 
     override fun onBind(intent: Intent): IBinder? {
         stopForeground(true)
@@ -112,7 +112,7 @@ class LocationService : Service() {
 
     override fun onUnbind(intent: Intent): Boolean {
         if (repo.isTripActive()) {
-            startForeground(NOTIFICATION_ID, getNotification(0))
+            startForeground(NOTIFICATION_ID, getNotification("0"))
         }
         else { stopSelf() }
         return true
@@ -154,13 +154,12 @@ class LocationService : Service() {
      * @return notificaiton
      * @author Balraj
      */
-    private fun getNotification(speed: Int): Notification {
-        val text: CharSequence = "$speed KMPH"
+    private fun getNotification(text: String): Notification {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Current Speed")
             .setContentText(text)
             .setPriority(Notification.PRIORITY_HIGH)
-            .setSmallIcon(com.forall.tripmeter.R.mipmap.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setTicker(text)
             .setOnlyAlertOnce(true)
             .setWhen(System.currentTimeMillis())
@@ -169,7 +168,10 @@ class LocationService : Service() {
 
     private fun onNewLocation(location: Location) {
         if (serviceIsRunningInForeground()) {
-            notificationManager.notify(NOTIFICATION_ID, getNotification(location.speed.inKmph()))
+            val notificationText = if(repo.isMeasurementUnitMiles()) {
+                "${location.speed.inMiles()} MPH"
+            } else { "${location.speed.inKmph()} KMPH" }
+            notificationManager.notify(NOTIFICATION_ID, getNotification(notificationText))
         }
         setLocationAddress(location)
         storeLocationInRoom(location)

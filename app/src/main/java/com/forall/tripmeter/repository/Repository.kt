@@ -8,6 +8,8 @@ import com.forall.tripmeter.prefs.TripMeterSharedPrefs
 class Repository(private val db: Database,
                  private val prefs: TripMeterSharedPrefs) {
 
+    fun isMeasurementUnitMiles() = prefs.isMeasurementUnitMiles()
+
     fun isTripActive() = prefs.isTripActive
 
     fun isTripActive(value: Boolean) { prefs.isTripActive = value }

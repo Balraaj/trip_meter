@@ -3,6 +3,7 @@ package com.forall.tripmeter.di.module
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.forall.tripmeter.common.Constants.TRIP_METER_DATABASE
 import com.forall.tripmeter.common.Constants.TRIP_METER_PREFS
@@ -27,7 +28,12 @@ class ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideTripMeterSharedPrefs(prefs: SharedPreferences) = TripMeterSharedPrefs(prefs)
+    fun provideTripMeterSharedPrefs(app: Application,
+                                    prefs: SharedPreferences): TripMeterSharedPrefs{
+        /* Default pref used by settings screen to persist user settings */
+        val defaultPref = PreferenceManager.getDefaultSharedPreferences(app)
+        return TripMeterSharedPrefs(prefs, defaultPref)
+    }
 
     @Singleton
     @Provides

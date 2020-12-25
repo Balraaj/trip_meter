@@ -6,7 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.forall.tripmeter.R
 import com.forall.tripmeter.common.Utils
+import com.forall.tripmeter.common.inKmph
+import com.forall.tripmeter.common.inMiles
 import com.forall.tripmeter.database.entity.Trip
+import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.list_item_trips.view.*
 
 /**
@@ -26,7 +29,15 @@ import kotlinx.android.synthetic.main.list_item_trips.view.*
  * -----------------------------------------------------------------------------------
  */
 
-class TripAdapter(private var dataSet: List<Trip>): RecyclerView.Adapter<TripAdapter.ViewHolder>() {
+class TripAdapter(private val unitMiles: Boolean,
+                  private var dataSet: List<Trip>): RecyclerView.Adapter<TripAdapter.ViewHolder>() {
+
+    private companion object{
+        private const val LABEL_KMPH = "KMPH"
+        private const val LABEL_MPH = "MPH"
+        private const val LABEL_KM = "KM"
+        private const val LABEL_MILES = "Miles"
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val viewHolder = LayoutInflater.from(parent.context)
@@ -41,8 +52,20 @@ class TripAdapter(private var dataSet: List<Trip>): RecyclerView.Adapter<TripAda
         v.tv_trip_end_time.text = Utils.millisToTripTimeFormat(currentItem.endTime)
         v.tv_start_address.text = currentItem.startAddress
         v.tv_end_address.text = currentItem.endAddress
-        v.tv_speed.text = currentItem.speed.toString()
-        v.tv_distance.text = Utils.metersToKM(currentItem.distance).toString()
+
+        /* Set speed and distance based on the chosen measurement unit */
+        if(unitMiles) {
+            v.label_km.text = LABEL_MILES
+            v.label_kmph.text = LABEL_MPH
+            v.tv_distance.text = Utils.metersToMiles(currentItem.distance).toString()
+            v.tv_speed.text = Utils.kmphToMph(currentItem.speed).toString()
+        }
+        else {
+            v.label_km.text = LABEL_KM
+            v.label_kmph.text = LABEL_KMPH
+            v.tv_distance.text = Utils.metersToKM(currentItem.distance).toString()
+            v.tv_speed.text = currentItem.speed.toString()
+        }
     }
 
     override fun getItemCount() = dataSet.size

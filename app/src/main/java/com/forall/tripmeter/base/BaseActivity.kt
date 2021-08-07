@@ -8,25 +8,24 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.CallSuper
-import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.viewbinding.ViewBinding
 import com.forall.tripmeter.R
 import com.forall.tripmeter.common.AppComponentProvider
 import com.forall.tripmeter.di.component.ActivityComponent
 import com.forall.tripmeter.di.component.DaggerActivityComponent
-import com.forall.tripmeter.di.module.ActivityModule
 import javax.inject.Inject
 
-abstract class BaseActivity<VM : BaseViewModel> : AppCompatActivity(){
+abstract class BaseActivity<VM : BaseViewModel, BD: ViewBinding> : AppCompatActivity(){
 
     @Inject
     lateinit var viewModel: VM
 
-    @LayoutRes
-    protected abstract fun provideLayoutId(): Int
+    protected lateinit var binding: BD private set
+    protected abstract fun provideBinding(): BD
     protected abstract fun setupView(savedInstanceState: Bundle?)
     protected abstract fun injectDependencies(ac: ActivityComponent)
 
@@ -34,7 +33,8 @@ abstract class BaseActivity<VM : BaseViewModel> : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?){
         injectDependencies(buildActivityComponent())
         super.onCreate(savedInstanceState)
-        setContentView(provideLayoutId())
+        binding = provideBinding()
+        setContentView(binding.root)
         setupObservers()
         setupView(savedInstanceState)
     }

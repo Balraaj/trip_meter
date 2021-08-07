@@ -24,6 +24,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
+import com.forall.tripmeter.databinding.ContentMainBinding
 import com.forall.tripmeter.di.component.ActivityComponent
 import com.forall.tripmeter.service.LocationService
 import com.google.android.gms.common.api.ApiException
@@ -37,10 +38,9 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import kotlinx.android.synthetic.main.content_main.*
 
 
-class HomeActivity : BaseActivity<HomeViewModel>() {
+class HomeActivity : BaseActivity<HomeViewModel, ContentMainBinding>() {
 
     private companion object {
         private const val PACKAGE = "package"
@@ -65,7 +65,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         }
     }
 
-    override fun provideLayoutId() = R.layout.content_main
+    override fun provideBinding() = ContentMainBinding.inflate(layoutInflater)
     override fun injectDependencies(ac: ActivityComponent) = ac.inject(this)
 
     override fun setupView(savedInstanceState: Bundle?) {
@@ -73,7 +73,7 @@ class HomeActivity : BaseActivity<HomeViewModel>() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         navController = findNavController(R.id.nav_host_fragment)
-        nav_bar_bottom.setupWithNavController(navController)
+        binding.navBarBottom.setupWithNavController(navController)
         setupNavLocationChangeListener()
         createLocationRequest()
         checkPermissionsAndContinue()

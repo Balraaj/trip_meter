@@ -6,17 +6,17 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseActivity
 import com.forall.tripmeter.common.Constants
+import com.forall.tripmeter.databinding.ActivitySplashBinding
 import com.forall.tripmeter.di.component.ActivityComponent
 import com.forall.tripmeter.ui.home.HomeActivity
 import com.google.firebase.messaging.FirebaseMessaging
 
 
-class SplashActivity : BaseActivity<SplashViewModel>() {
+class SplashActivity : BaseActivity<SplashViewModel, ActivitySplashBinding>() {
 
-    override fun provideLayoutId() = R.layout.activity_splash
+    override fun provideBinding() = ActivitySplashBinding.inflate(layoutInflater)
     override fun injectDependencies(ac: ActivityComponent) = ac.inject(this)
 
     override fun setupView(savedInstanceState: Bundle?) {

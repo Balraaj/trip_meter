@@ -1,18 +1,21 @@
 package com.forall.tripmeter.base
 
 import android.os.Bundle
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.viewbinding.ViewBinding
 import com.forall.tripmeter.R
 import com.forall.tripmeter.common.AppComponentProvider
 import com.forall.tripmeter.di.component.DaggerFragmentComponent
@@ -20,13 +23,14 @@ import com.forall.tripmeter.di.component.FragmentComponent
 import com.forall.tripmeter.di.module.FragmentModule
 import javax.inject.Inject
 
-abstract class BaseFragment<VM : BaseViewModel> : Fragment() {
+abstract class BaseFragment<VM : BaseViewModel, BD: ViewBinding> : Fragment() {
 
     @Inject
     lateinit var viewModel: VM
 
-    @LayoutRes
-    protected abstract fun provideLayoutId(): Int
+    protected lateinit var binding: BD private set
+
+    protected abstract fun provideBinding(inflater: LayoutInflater, container: ViewGroup?): BD
     protected abstract fun injectDependencies(fc: FragmentComponent)
     protected abstract fun setupView(view: View)
 
@@ -45,7 +49,8 @@ abstract class BaseFragment<VM : BaseViewModel> : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        return inflater.inflate(provideLayoutId(), container, false)
+        binding = provideBinding(inflater, container)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

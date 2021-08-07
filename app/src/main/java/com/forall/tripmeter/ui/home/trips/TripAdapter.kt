@@ -1,16 +1,11 @@
 package com.forall.tripmeter.ui.home.trips
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.forall.tripmeter.R
 import com.forall.tripmeter.common.Utils
-import com.forall.tripmeter.common.inKmph
-import com.forall.tripmeter.common.inMiles
 import com.forall.tripmeter.database.entity.Trip
-import kotlinx.android.synthetic.main.fragment_home.*
-import kotlinx.android.synthetic.main.list_item_trips.view.*
+import com.forall.tripmeter.databinding.ListItemTripsBinding
 
 /**
  * Project Name : Trip Meter
@@ -40,35 +35,37 @@ class TripAdapter(private val unitMiles: Boolean,
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val viewHolder = LayoutInflater.from(parent.context)
-            .inflate(R.layout.list_item_trips, parent, false)
-        return ViewHolder(viewHolder)
+        val binding = ListItemTripsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentItem = dataSet[position]
-        val v = holder.itemView
-        v.tv_trip_start_time.text = Utils.millisToTripTimeFormat(currentItem.startTime)
-        v.tv_trip_end_time.text = Utils.millisToTripTimeFormat(currentItem.endTime)
-        v.tv_start_address.text = currentItem.startAddress
-        v.tv_end_address.text = currentItem.endAddress
-
-        /* Set speed and distance based on the chosen measurement unit */
-        if(unitMiles) {
-            v.label_km.text = LABEL_MILES
-            v.label_kmph.text = LABEL_MPH
-            v.tv_distance.text = Utils.metersToMiles(currentItem.distance).toString()
-            v.tv_speed.text = Utils.kmphToMph(currentItem.speed).toString()
-        }
-        else {
-            v.label_km.text = LABEL_KM
-            v.label_kmph.text = LABEL_KMPH
-            v.tv_distance.text = Utils.metersToKM(currentItem.distance).toString()
-            v.tv_speed.text = currentItem.speed.toString()
-        }
+        holder.bind(unitMiles, currentItem)
     }
 
     override fun getItemCount() = dataSet.size
 
-    class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
+    class ViewHolder(private val binding: ListItemTripsBinding): RecyclerView.ViewHolder(binding.root){
+        fun bind(unitMiles: Boolean, trip: Trip){
+            binding.tvTripStartTime.text = Utils.millisToTripTimeFormat(trip.startTime)
+            binding.tvTripEndTime.text = Utils.millisToTripTimeFormat(trip.endTime)
+            binding.tvStartAddress.text = trip.startAddress
+            binding.tvEndAddress.text = trip.endAddress
+
+            /* Set speed and distance based on the chosen measurement unit */
+            if(unitMiles) {
+                binding.labelKm.text = LABEL_MILES
+                binding.labelKmph.text = LABEL_MPH
+                binding.tvDistance.text = Utils.metersToMiles(trip.distance).toString()
+                binding.tvSpeed.text = Utils.kmphToMph(trip.speed).toString()
+            }
+            else {
+                binding.labelKm.text = LABEL_KM
+                binding.labelKmph.text = LABEL_KMPH
+                binding.tvDistance.text = Utils.metersToKM(trip.distance).toString()
+                binding.tvSpeed.text = trip.speed.toString()
+            }
+        }
+    }
 }

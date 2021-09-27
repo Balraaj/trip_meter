@@ -22,7 +22,7 @@ import java.util.function.DoubleBinaryOperator
  */
 
 @Entity
-class Trip(
+data class Trip(
     @PrimaryKey(autoGenerate = true)
     val tripId: Int,
 

@@ -11,6 +11,9 @@ import com.forall.tripmeter.di.component.FragmentComponent
 import com.forall.tripmeter.ui.home.HomeViewModel
 
 class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
+
+    private lateinit var tripAdapter: TripAdapter
+
     override fun provideBinding(inflater: LayoutInflater,
                                 container: ViewGroup?): FragmentTripsBinding {
         return FragmentTripsBinding.inflate(inflater, container, false)
@@ -21,7 +24,13 @@ class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.setMeasurementUnit()
+        initRecyclerView()
         viewModel.getAllTrips().observe(this, Observer { updateUI(it) })
+    }
+
+    private fun initRecyclerView() {
+        tripAdapter = TripAdapter(viewModel.unitMiles)
+        binding.rvTrips.adapter = tripAdapter
     }
 
     /**
@@ -40,9 +49,7 @@ class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
         else{
             binding.rvTrips.visibility = View.VISIBLE
             binding.labelNoTrips.visibility = View.GONE
-            binding.rvTrips.adapter = TripAdapter(viewModel.unitMiles, visibleTrips)
+            tripAdapter.submitList(visibleTrips)
         }
     }
-
-
 }

@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -28,12 +30,24 @@ import java.util.*
 
 class LocationService : Service() {
 
+    /**
+     * Class used for the client Binder.  Since this service runs in the same process as its
+     * clients, we don't need to deal with IPC.
+     */
+    inner class ServiceBinder : Binder() {
+        fun getService() = this@LocationService
+    }
+
     companion object {
         private val TAG = LocationService::class.java.simpleName
         private const val CHANNEL_ID = "tripMeter_channel_01"
         private const val UPDATE_INTERVAL = 2000L
         private const val NOTIFICATION_ID = 12345678
+
         private const val SPEED_CAP = 55F
+        private const val MAX_SPEED_JUMP = 10
+        private const val LOCATION_MIN_DISTANCE = 5F
+        private const val LOCATION_MIN_INTERVAL = 1000L
     }
 
     private val binder: IBinder = ServiceBinder()
@@ -45,57 +59,12 @@ class LocationService : Service() {
     private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var lastKnownLocation: Location
 
+    /** Use LocationManager instead of Fused for accurate location results. */
+    private val locationListener = LocationListener { onNewLocation(it) }
+
+    /** Configure Fused, to get GPS locks fast */
     private var locationCallback: LocationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            val locationList = locationResult.locations
-            if (locationList.isNotEmpty()) {
-                val location = locationList.first()
-                onNewLocation(location)
-            }
-        }
-    }
-
-    override fun onCreate() {
-        injectDependencies()
-        locationClient = LocationServices.getFusedLocationProviderClient(this)
-        geocoder = Geocoder(this, Locale.getDefault())
-        createLocationRequest()
-        setupNotificationManager()
-    }
-
-    private fun injectDependencies(){
-        val serviceComponent = DaggerServiceComponent.factory()
-            .create((application as AppComponentProvider).getAppComponent())
-        repo = serviceComponent.getServiceRepository()
-    }
-
-    /**
-     * Builds the location request by configuring the location request interval
-     * and the accuracy of location request.
-     * @author Balraj
-     */
-    private fun createLocationRequest(){
-        locationRequest = LocationRequest()
-        locationRequest.interval = UPDATE_INTERVAL
-        locationRequest.fastestInterval = UPDATE_INTERVAL
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-    }
-
-    /**
-     * Sets up the notification manager for posting the foreground notification.
-     * will also setup notification channel if used on OREO or later
-     * @author Balraj
-     */
-    private fun setupNotificationManager(){
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        /* Android O requires a Notification Channel. */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name: CharSequence = getString(com.forall.tripmeter.R.string.app_name)
-            val channel = NotificationChannel(CHANNEL_ID, name, IMPORTANCE_HIGH)
-            channel.setSound(null, null)
-            notificationManager.createNotificationChannel(channel)
-        }
+        override fun onLocationResult(locationResult: LocationResult) {}
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int) = START_STICKY
@@ -131,21 +100,74 @@ class LocationService : Service() {
     }
 
     /**
-     * Starts the location updates using FusedLocationProvider.
+     * Starts the location updates using FusedLocationProvider and LocationManager.
      * @author Balraj
      */
     @SuppressLint("MissingPermission")
     fun requestLocationUpdates() {
         startService(Intent(applicationContext, LocationService::class.java))
         locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager.requestLocationUpdates(
+            LocationManager.GPS_PROVIDER,
+            LOCATION_MIN_INTERVAL,
+            LOCATION_MIN_DISTANCE,
+            locationListener
+        )
     }
 
     /**
-     * Removes the location updates from fusedLocationProvider.
+     * Removes the location updates from FusedLocationProvider and LocationManager.
      * @author Balraj
      */
     private fun removeLocationUpdates() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager.removeUpdates(locationListener)
         locationClient.removeLocationUpdates(locationCallback)
+    }
+
+    override fun onCreate() {
+        injectDependencies()
+        initLocationProperties()
+        setupNotificationManager()
+    }
+
+    private fun injectDependencies(){
+        val serviceComponent = DaggerServiceComponent.factory()
+            .create((application as AppComponentProvider).getAppComponent())
+        repo = serviceComponent.getServiceRepository()
+    }
+
+    /**
+     * Initializes all the properties required for location capturing.
+     * @author Balraj
+     */
+    private fun initLocationProperties() {
+        locationClient = LocationServices.getFusedLocationProviderClient(this)
+        geocoder = Geocoder(this, Locale.getDefault())
+        locationRequest = LocationRequest.create().apply {
+            interval = UPDATE_INTERVAL
+            fastestInterval = UPDATE_INTERVAL
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+    }
+
+    /**
+     * Sets up the notification manager for posting the foreground notification.
+     * will also setup notification channel if used on OREO or later
+     * @author Balraj
+     */
+    private fun setupNotificationManager(){
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        /* Android O requires a Notification Channel. */
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name: CharSequence = getString(com.forall.tripmeter.R.string.app_name)
+            val channel = NotificationChannel(CHANNEL_ID, name, IMPORTANCE_HIGH)
+            channel.setSound(null, null)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     /**
@@ -166,36 +188,6 @@ class LocationService : Service() {
         return builder.build()
     }
 
-    private fun onNewLocation(location: Location) {
-        if (serviceIsRunningInForeground()) {
-            val notificationText = if(repo.isMeasurementUnitMiles()) {
-                "${location.speed.inMiles()} MPH"
-            } else { "${location.speed.inKmph()} KMPH" }
-            notificationManager.notify(NOTIFICATION_ID, getNotification(notificationText))
-        }
-        setLocationAddress(location)
-        storeLocationInRoom(location)
-    }
-
-    private fun storeLocationInRoom(location: Location) = GlobalScope.launch(Dispatchers.IO) {
-        if(::lastKnownLocation.isInitialized){
-            if(location.speed - lastKnownLocation.speed > 10){
-                location.speed = lastKnownLocation.speed + 10
-            }
-            if(location.speed > SPEED_CAP) { location.speed = SPEED_CAP }
-        }
-        repo.updateLocation(location)
-        lastKnownLocation = location
-    }
-
-    /**
-     * Class used for the client Binder.  Since this service runs in the same process as its
-     * clients, we don't need to deal with IPC.
-     */
-    inner class ServiceBinder : Binder() {
-        fun getService() = this@LocationService
-    }
-
     /**
      * Returns true if this is a foreground service.
      * @return true if this is a foreground service false otherwise.
@@ -211,23 +203,46 @@ class LocationService : Service() {
         return false
     }
 
+    private fun onNewLocation(location: Location) {
+        if (serviceIsRunningInForeground()) {
+            val notificationText = if(repo.isMeasurementUnitMiles()) {
+                "${location.speed.inMiles()} MPH"
+            } else { "${location.speed.inKmph()} KMPH" }
+            notificationManager.notify(NOTIFICATION_ID, getNotification(notificationText))
+        }
+        setLocationAddress(location)
+        storeLocationInRoom(location)
+    }
+
     /**
      * Tries to determine the address of given location.
      * if address is found then updates the location table
      * @author Balraj
      */
-    private fun setLocationAddress(loc: Location){
-        Thread{
-            try {
-                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-                if (addresses.isNotEmpty() && addresses[0].maxAddressLineIndex != -1) {
-                    val address = addresses[0].getAddressLine(0)
-                    repo.updateCurrentAddress(address)
-                }
+    private fun setLocationAddress(loc: Location) = GlobalScope.launch(Dispatchers.IO) {
+        try {
+            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+            if (addresses.isNotEmpty() && addresses.first().maxAddressLineIndex != -1) {
+                val address = addresses.first().getAddressLine(0)
+                repo.updateCurrentAddress(address)
             }
-            catch (e: IOException) {
-                Log.d(TAG, "GEO_CODER: FAILED TO GET LOCATION ADDRESS")
+        }
+        catch (e: IOException) { Log.e(TAG, "GEO_CODER: FAILED TO GET LOCATION ADDRESS") }
+    }
+
+    /**
+     * Stores the captured location in local database.
+     * only allows a limited speed jump, automatically adjusts speed if required.
+     * @author Balraj
+     */
+    private fun storeLocationInRoom(location: Location) = GlobalScope.launch(Dispatchers.IO) {
+        if(::lastKnownLocation.isInitialized){
+            if(location.speed - lastKnownLocation.speed > MAX_SPEED_JUMP){
+                location.speed = lastKnownLocation.speed + MAX_SPEED_JUMP
             }
-        }.start()
+            if(location.speed > SPEED_CAP) { location.speed = SPEED_CAP }
+        }
+        repo.updateLocation(location)
+        lastKnownLocation = location
     }
 }

@@ -2,7 +2,6 @@ package com.forall.tripmeter
 
 import android.app.Application
 import com.forall.tripmeter.common.AppComponentProvider
-import com.forall.tripmeter.database.entity.TripLocation
 import com.forall.tripmeter.di.component.ApplicationComponent
 import com.forall.tripmeter.di.component.DaggerApplicationComponent
 
@@ -29,21 +28,10 @@ class TripMeterApp: Application(), AppComponentProvider {
     override fun onCreate() {
         super.onCreate()
         createApplicationComponent()
-        insertDefaultLastKnownLocation()
     }
 
     private fun createApplicationComponent(){
         applicationComponent = DaggerApplicationComponent.factory().create(this)
-    }
-
-    /**
-     * When application starts we insert a default location in the
-     * location table, all the location updates then update this data
-     * @author Balraj
-     */
-    private fun insertDefaultLastKnownLocation(){
-        val defaultLocation = TripLocation.getDefaultLocation()
-        applicationComponent.getRepository().insertLocation(defaultLocation)
     }
 
     override fun getAppComponent(): ApplicationComponent {

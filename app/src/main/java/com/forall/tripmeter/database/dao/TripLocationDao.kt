@@ -11,20 +11,17 @@ import com.forall.tripmeter.database.entity.TripLocation
 interface TripLocationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTripLocation(location: TripLocation)
-
-    @Query("UPDATE trip_location SET lat =:lat, lon =:lon, speed =:speed")
-    fun updateLocation(lat: Double, lon: Double, speed: Int)
+    suspend fun insertTripLocation(location: TripLocation)
 
     @Query("UPDATE trip_location SET address =:address")
-    fun updateAddress(address: String)
+    suspend fun updateAddress(address: String)
 
-    @Query("SELECT * FROM trip_location LIMIT 1")
+    @Query("SELECT * FROM trip_location")
     fun getLastKnownLocation(): LiveData<TripLocation>
 
     @Query("DELETE FROM trip_location")
     fun deleteLocation()
 
     @Query("SELECT * FROM trip_location LIMIT 1")
-    fun getLastKnownLocationNotLive(): TripLocation
+    fun getLastLocation(): TripLocation?
 }

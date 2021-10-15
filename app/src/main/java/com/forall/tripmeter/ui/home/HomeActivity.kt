@@ -224,6 +224,8 @@ class HomeActivity : BaseActivity<HomeViewModel, ContentMainBinding>() {
         override fun onProviderEnabled(provider: String) {
             checkGPSStatus()
         }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     }
 
     private val listener = OnCompleteListener<LocationSettingsResponse> { task ->
@@ -239,8 +241,8 @@ class HomeActivity : BaseActivity<HomeViewModel, ContentMainBinding>() {
         catch (ex: ApiException) {
             if (ex.statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
                 try {
-                    val e = ex as ResolvableApiException
-                    e.startResolutionForResult(this, LOCATION_SETTINGS_REQUEST)
+                    val e = ex as? ResolvableApiException
+                    e?.startResolutionForResult(this, LOCATION_SETTINGS_REQUEST)
                 }
                 catch (e: SendIntentException) { }
             }

@@ -1,15 +1,12 @@
 package com.forall.tripmeter.ui.home
 
-import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
+import com.forall.tripmeter.R
 import com.forall.tripmeter.base.BaseViewModel
-import com.forall.tripmeter.common.Constants.FACTOR_METER_TO_KM
-import com.forall.tripmeter.common.Constants.FACTOR_METER_TO_MILES
-import com.forall.tripmeter.common.Constants.LAST_LOCATION
-import com.forall.tripmeter.common.Constants.NO_SPEED
-import com.forall.tripmeter.common.Constants.SPEED_CACHE_SIZE
+import com.forall.tripmeter.common.*
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.database.entity.TripLocation
 import com.forall.tripmeter.repository.Repository
@@ -20,154 +17,95 @@ import java.util.*
 
 class HomeViewModel(repo: Repository): BaseViewModel(repo) {
 
+    var permissionAllowed = false
+
     /**
      * Properties to store measurement factor information,
      * depending on the Kmph/Mph we need different factors and conversions
      */
-    var unitMiles = false
-    var measurementFactor = 0.0
+    private val _distanceUnit: MutableLiveData<DistanceUnit> = MutableLiveData(DistanceUnit.KM)
+    val distanceUnit: LiveData<DistanceUnit> = _distanceUnit
 
+    private val _averageSpeed: MutableLiveData<String> = MutableLiveData()
+    val averageSpeed: LiveData<String> = _averageSpeed
 
-    var permissionAllowed = false
+    private val _gpsLockAcquired: MutableLiveData<Event<Boolean>> = MutableLiveData()
+    val gpsLockAcquired: LiveData<Event<Boolean>> = _gpsLockAcquired
+
 
     /**
      * Signifies if a new trip is active.
      * this value is only changed when user toggles the trip start button.
      */
-    var tripActive: MutableLiveData<Boolean> = MutableLiveData(false)
-    var tripEnded: MutableLiveData<Boolean> = MutableLiveData(false)
+    private val _tripState: MutableLiveData<TripState> = MutableLiveData(TripState.ENDED)
+    val tripState: LiveData<TripState> = _tripState
 
-    val currentTripDelta: MutableLiveData<Trip> = MutableLiveData()
-    val averageSpeed: MutableLiveData<String> = MutableLiveData()
-    val gpsLockAcquired: MutableLiveData<Boolean> = MutableLiveData(false)
-
-    private val locationData: MutableList<TripLocation> = LinkedList()
-
-    fun setMeasurementUnit(){
-        unitMiles = repo.isMeasurementUnitMiles()
-        measurementFactor = if(unitMiles) { FACTOR_METER_TO_MILES } else { FACTOR_METER_TO_KM }
+    fun initDistanceUnit(){
+        val unit = if(repo.isMeasurementUnitMiles()) DistanceUnit.MILES else DistanceUnit.KM
+        _distanceUnit.postValue(unit)
     }
 
-    fun performTripStateToggle() = viewModelScope.launch(Dispatchers.IO) {
+    fun initTripState() {
+        val currentState = if(isTripActive()) TripState.ACTIVE else TripState.ENDED
+        _tripState.postValue(currentState)
+    }
+
+    private fun isTripActive() = repo.isTripActive()
+
+
+    val currentTrip: LiveData<Trip> = Transformations.map(repo.getLatestTripLive()){
+        if(it == null) return@map null
+        val (distance, speed) = when(distanceUnit.value){
+            DistanceUnit.KM -> { Pair(Utils.metersToKM(it.distance), it.speed.toFloat().inKmph()) }
+            else ->            { Pair(Utils.metersToMiles(it.distance), it.speed.toFloat().inMiles()) }
+        }
+        it.copy(distance = distance, speed = speed)
+    }
+
+    val lastLocation: LiveData<TripLocation> = Transformations.map(repo.getLastKnownLocation()){
+        val trip = it ?: return@map null
+        setGpsLockAndAverageSpeedLiveData(it)
+        return@map it
+    }
+
+    private fun setGpsLockAndAverageSpeedLiveData(lastLocation: TripLocation) =
+        viewModelScope.launch(Dispatchers.Default) {
+        if(_gpsLockAcquired.value == null) { _gpsLockAcquired.postValue(Event(true)) }
+        setAverageSpeedLiveData(lastLocation.speed)
+    }
+
+    private fun setAverageSpeedLiveData(speed: Int){
+        val newAvgSpeed = (speed * distanceUnit.value!!.conversionFactor).toInt()
+        _averageSpeed.postValue(newAvgSpeed.toString())
+    }
+
+    fun performTripStateToggle() = viewModelScope.launch(Dispatchers.Default) {
         /* If current trip state is ended that means, a new trip have been started */
-        if (!tripActive.value!!) {
-            repo.isTripActive(true)
+        if (TripState.ENDED == tripState.value) {
             insertTrip()
-            tripActive.postValue(true)
-            tripEnded.postValue(false)
-        } else {
+            repo.isTripActive(true)
+            _tripState.postValue(TripState.ACTIVE)
+        }
+        else {
             repo.isTripActive(false)
-            tripActive.postValue(false)
-            tripEnded.postValue(true)
+            _tripState.postValue(TripState.ENDED)
+            verifyTripConstraintsAndCommit()
         }
     }
-
-    fun isTripActive() = repo.isTripActive()
-
-    fun getLastKnownLocation(): LiveData<TripLocation> = repo.getLastKnownLocation()
-
-    /**
-     * Updates the speed data as well as trip delta with new location information.
-     * this function is responsible for notifying the UI of changes.
-     * @author Balraj
-     */
-    fun postNewLocation(location: TripLocation){
-        updateSpeedData(location)
-        updateTripDelta(location)
-    }
-
-    private fun updateSpeedData(location: TripLocation){
-        if(locationData.size == SPEED_CACHE_SIZE) { locationData.removeAt(0) }
-        locationData.add(location)
-        postUpdatedSpeedDataToUI()
-    }
-
-    /**
-     * Update the delta with current location information.
-     */
-    private fun updateTripDelta(location: TripLocation) {
-        currentTripDelta.postValue(Trip.defaultDelta(location))
-    }
-
-    private fun setGPSLockAcquired(){
-        if(gpsLockAcquired.value == null || gpsLockAcquired.value == false) {
-            gpsLockAcquired.postValue(true)
-        }
-    }
-
-    /**
-     * Posts the updated speed information in LiveDat object so that
-     * UI can update itself.
-     *
-     * @author Balraj
-     */
-    private fun postUpdatedSpeedDataToUI() = viewModelScope.launch {
-        setGPSLockAcquired()
-        if(locationData.size < SPEED_CACHE_SIZE) { averageSpeed.postValue(NO_SPEED) }
-        else{
-            val sum = locationData.sumBy { it.speed.toInt() }
-            val speed = (sum * measurementFactor) / locationData.size
-            averageSpeed.postValue(speed.toInt().toString())
-        }
-    }
-
 
     private fun insertTrip() = GlobalScope.launch(Dispatchers.IO) {
-        repo.insertTrip(currentTripDelta.value!!)
+        repo.insertTrip(Trip.fromLocation(lastLocation.value!!))
     }
 
-    /**
-     * Deletes the latest trip, this is done when newly created trip doesn't
-     * satisfy any required constraint.
-     * @author Balraj
-     */
-    fun deleteLatestTrip() = GlobalScope.launch(Dispatchers.IO){
-        repo.deleteLatestTrip()
-    }
 
-    /**
-     * Updates the currently active trip with the new location information.
-     * Following fields of current trip are updated:
-     *      1. distance (add new distance)
-     *      2. speed (calculate new average)
-     *      3. endLat
-     *      4. endLong
-     *      5. endTime
-     *      6. endAddress
-     *
-     * @author Balraj
-     */
-    fun updateCurrentTrip() = GlobalScope.launch(Dispatchers.IO) {
-        val trip = repo.getLatestTrip()
-        val newDelta = currentTripDelta.value
-        if(trip == null || newDelta == null) { return@launch }
-        val (distance, speed) = getDistanceAndSpeed(trip, newDelta)
-        trip.updateWithDelta(distance, speed, newDelta)
-        repo.updateCurrentTrip(trip)
+    /** Commit newly created trip only if it satisfies all the required constraints. */
+    private fun verifyTripConstraintsAndCommit() = viewModelScope.launch {
+        val trip = repo.getLatestTrip() ?: return@launch
+        if(trip.distance < Constants.MINIMUM_TRIP_DISTANCE_METER){
+            repo.deleteLatestTrip()
+            showNotificationDialog.postValue(R.string.trip_not_commited)
+        }
     }
-
-    /**
-     * Returns distance and speed of the current trip after incorporating
-     * the new location information.
-     * @author Balraj
-     */
-    private fun getDistanceAndSpeed(trip: Trip, newDelta: Trip): Pair<Float, Int>{
-        val currentTripLocation = locationData[locationData.size - 1]
-        val currentLocation = Location(LAST_LOCATION)
-        currentLocation.latitude = currentTripLocation.lat
-        currentLocation.longitude = currentTripLocation.lon
-        val lastLocation = Location(LAST_LOCATION)
-        lastLocation.latitude = trip.endLat
-        lastLocation.longitude = trip.endLong
-        val distance = currentLocation.distanceTo(lastLocation) + trip.distance
-        var speed = if(distance > 200) {
-            (distance / ((newDelta.startTime - trip.startTime) / 1000) * 3.6 ).toInt()
-        } else { 0 }
-        if(speed > 200) { speed = 200 }
-        return Pair(distance, speed)
-    }
-
-    fun getLatestTrip() = repo.getLatestTrip()
 
     fun getAllTrips() = repo.getAllTrips()
 }

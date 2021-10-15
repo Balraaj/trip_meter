@@ -7,4 +7,6 @@ import com.forall.tripmeter.repository.Repository
 abstract class BaseViewModel(protected val repo: Repository):ViewModel() {
     val messageStringId: MutableLiveData<Int> = MutableLiveData()
     val messageString: MutableLiveData<String> = MutableLiveData()
+
+    val showNotificationDialog: MutableLiveData<Int> = MutableLiveData()
 }

@@ -18,12 +18,6 @@
         tools:layout="@layout/fragment_trips" />
 
     <fragment
-        android:id="@+id/nav_how_to"
-        android:name="com.forall.tripmeter.ui.home.howto.HowToFragment"
-        android:label="@string/nav_how_to"
-        tools:layout="@layout/fragment_how_to" />
-
-    <fragment
         android:id="@+id/nav_settings"
         android:name="com.forall.tripmeter.ui.home.settings.SettingsFragment"
         android:label="@string/nav_settings"/>

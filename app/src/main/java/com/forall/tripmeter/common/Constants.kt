@@ -3,7 +3,7 @@ package com.forall.tripmeter.common
 object Constants {
 
     const val MAX_TRIPS = 42
-    const val SPEED_CACHE_SIZE = 2
+    const val SPEED_CACHE_SIZE = 1
     const val ZERO_FLOAT = 0.0f
     const val ZERO = 0
     const val FACTOR_METER_TO_KM = 3.6
@@ -18,4 +18,6 @@ object Constants {
     const val EMPTY_STRING = ""
     const val NA = "Not Available"
     const val LAST_LOCATION = "LAST_LOCATION"
+    const val M_PH = "MPH"
+    const val KM_PH = "KMPH"
 }

@@ -3,8 +3,9 @@ package com.forall.tripmeter.ui.home.trips
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import com.forall.tripmeter.base.BaseFragment
+import com.forall.tripmeter.common.DistanceUnit
+import com.forall.tripmeter.common.TripState
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.databinding.FragmentTripsBinding
 import com.forall.tripmeter.di.component.FragmentComponent
@@ -12,25 +13,25 @@ import com.forall.tripmeter.ui.home.HomeViewModel
 
 class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
 
-    private lateinit var tripAdapter: TripAdapter
-
     override fun provideBinding(inflater: LayoutInflater,
                                 container: ViewGroup?): FragmentTripsBinding {
         return FragmentTripsBinding.inflate(inflater, container, false)
     }
     override fun injectDependencies(fc: FragmentComponent) = fc.inject(this)
-    override fun setupView(view: View) {}
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.setMeasurementUnit()
+    override fun setupView(view: View) {
+        viewModel.initTripState()
+        viewModel.initDistanceUnit()
         initRecyclerView()
-        viewModel.getAllTrips().observe(this, Observer { updateUI(it) })
+    }
+
+    override fun setupObservers() {
+        super.setupObservers()
+        viewModel.getAllTrips().observe(this, { updateUI(it) })
     }
 
     private fun initRecyclerView() {
-        tripAdapter = TripAdapter(viewModel.unitMiles)
-        binding.rvTrips.adapter = tripAdapter
+        binding.rvTrips.adapter = TripAdapter(arrayListOf(), viewModel.distanceUnit.value ?: DistanceUnit.KM)
     }
 
     /**
@@ -40,7 +41,7 @@ class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
      */
     private fun updateUI(trips: List<Trip>){
         val visibleTrips = arrayListOf<Trip>()
-        if(viewModel.tripActive.value!!) { visibleTrips.addAll(trips); visibleTrips.removeAt(0) }
+        if(viewModel.tripState.value == TripState.ACTIVE) { visibleTrips.addAll(trips); visibleTrips.removeAt(0) }
         else { visibleTrips.addAll(trips) }
         if(visibleTrips.isEmpty()){
             binding.rvTrips.visibility = View.GONE
@@ -49,7 +50,7 @@ class TripsFragment: BaseFragment<HomeViewModel, FragmentTripsBinding>() {
         else{
             binding.rvTrips.visibility = View.VISIBLE
             binding.labelNoTrips.visibility = View.GONE
-            tripAdapter.submitList(visibleTrips)
+            binding.rvTrips.adapter = TripAdapter(visibleTrips, viewModel.distanceUnit.value ?: DistanceUnit.KM)
         }
     }
 }

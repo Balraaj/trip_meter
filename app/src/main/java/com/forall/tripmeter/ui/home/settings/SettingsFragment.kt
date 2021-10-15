@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceFragmentCompat
 import com.forall.tripmeter.R
 
@@ -19,7 +20,7 @@ class SettingsFragment: PreferenceFragmentCompat() {
         savedInstanceState: Bundle?
     ): View? {
         val v = super.onCreateView(inflater, container, savedInstanceState)
-        v?.setBackgroundColor(resources.getColor(R.color.colorSecondary))
+        v?.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorSecondary))
         return v
     }
 }

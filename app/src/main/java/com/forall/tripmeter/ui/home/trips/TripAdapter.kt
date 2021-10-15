@@ -5,7 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.forall.tripmeter.common.DistanceUnit
 import com.forall.tripmeter.common.Utils
+import com.forall.tripmeter.common.inKmph
+import com.forall.tripmeter.common.inMiles
 import com.forall.tripmeter.database.entity.Trip
 import com.forall.tripmeter.databinding.ListItemTripsBinding
 
@@ -26,7 +29,8 @@ import com.forall.tripmeter.databinding.ListItemTripsBinding
  * -----------------------------------------------------------------------------------
  */
 
-class TripAdapter(private val unitMiles: Boolean): ListAdapter<Trip, TripAdapter.ViewHolder>(TripDiffer()) {
+class TripAdapter(private val data: List<Trip>,
+                  private val unit: DistanceUnit): RecyclerView.Adapter<TripAdapter.ViewHolder>() {
 
     private companion object{
         private const val LABEL_KMPH = "KMPH"
@@ -35,32 +39,35 @@ class TripAdapter(private val unitMiles: Boolean): ListAdapter<Trip, TripAdapter
         private const val LABEL_MILES = "Miles"
     }
 
+    override fun getItemCount() = data.size
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder.from(parent)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val currentItem = getItem(position)
-        holder.bind(unitMiles, currentItem)
+        val currentItem = data[position]
+        holder.bind(unit, currentItem)
     }
 
     class ViewHolder private constructor(private val binding: ListItemTripsBinding): RecyclerView.ViewHolder(binding.root){
-        fun bind(unitMiles: Boolean, trip: Trip){
+        fun bind(unit: DistanceUnit, trip: Trip){
             binding.tvTripStartTime.text = Utils.millisToTripTimeFormat(trip.startTime)
             binding.tvTripEndTime.text = Utils.millisToTripTimeFormat(trip.endTime)
             binding.tvStartAddress.text = trip.startAddress
             binding.tvEndAddress.text = trip.endAddress
 
-            /* Set speed and distance based on the chosen measurement unit */
-            if(unitMiles) {
-                binding.labelKm.text = LABEL_MILES
-                binding.labelKmph.text = LABEL_MPH
-                binding.tvDistance.text = Utils.metersToMiles(trip.distance).toString()
-                binding.tvSpeed.text = Utils.kmphToMph(trip.speed).toString()
-            }
-            else {
-                binding.labelKm.text = LABEL_KM
-                binding.labelKmph.text = LABEL_KMPH
-                binding.tvDistance.text = Utils.metersToKM(trip.distance).toString()
-                binding.tvSpeed.text = trip.speed.toString()
+            when(unit){
+                DistanceUnit.MILES -> {
+                    binding.labelKm.text = LABEL_MILES
+                    binding.labelKmph.text = LABEL_MPH
+                    binding.tvDistance.text = Utils.metersToMiles(trip.distance).toString()
+                    binding.tvSpeed.text  = trip.speed.toFloat().inMiles().toString()
+                }
+                else -> {
+                    binding.labelKm.text = LABEL_KM
+                    binding.labelKmph.text = LABEL_KMPH
+                    binding.tvDistance.text = Utils.metersToKM(trip.distance).toString()
+                    binding.tvSpeed.text =    trip.speed.toFloat().inKmph().toString()
+                }
             }
         }
 
@@ -72,10 +79,4 @@ class TripAdapter(private val unitMiles: Boolean): ListAdapter<Trip, TripAdapter
             }
         }
     }
-}
-
-/** Diff utils implementation for efficient data loads */
-class TripDiffer: DiffUtil.ItemCallback<Trip>(){
-    override fun areItemsTheSame(oldItem: Trip, newItem: Trip) = oldItem.tripId == newItem.tripId
-    override fun areContentsTheSame(oldItem: Trip, newItem: Trip) = oldItem == newItem
 }

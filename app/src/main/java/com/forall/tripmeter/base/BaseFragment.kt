@@ -37,7 +37,6 @@ abstract class BaseFragment<VM : BaseViewModel, BD: ViewBinding> : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         injectDependencies(buildFragmentComponent())
         super.onCreate(savedInstanceState)
-        setupObservers()
     }
 
     private fun buildFragmentComponent(): FragmentComponent {
@@ -56,6 +55,7 @@ abstract class BaseFragment<VM : BaseViewModel, BD: ViewBinding> : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupView(view)
+        setupObservers()
     }
 
     protected open fun setupObservers() {
@@ -66,6 +66,13 @@ abstract class BaseFragment<VM : BaseViewModel, BD: ViewBinding> : Fragment() {
         viewModel.messageStringId.observe(this, Observer {
             it?.let { showMessage(it); viewModel.messageStringId.value = null }
         })
+
+        viewModel.showNotificationDialog.observe(viewLifecycleOwner){ stringRes ->
+            stringRes?.let {
+                showNotificationDialog(getString(stringRes)){}
+                viewModel.showNotificationDialog.value = null
+            }
+        }
     }
 
     fun showMessage(message: String) = context?.let {
